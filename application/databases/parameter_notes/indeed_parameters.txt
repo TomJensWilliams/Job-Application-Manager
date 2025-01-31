@@ -1,0 +1,43 @@
+Radius:
+-------
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=100 &vjk=d1f47593c34d957e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=50  &vjk=d1f47593c34d957e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=35  &vjk=f5057cf678f2ec15
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=25  &vjk=0d00ba64f645be4e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=15  &vjk=0d00ba64f645be4e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=10  &vjk=0d00ba64f645be4e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=5   &vjk=0d00ba64f645be4e
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &radius=0   &vjk=0d00ba64f645be4e
+
+Date Posted:
+-----------
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &fromage=14 &from=searchOnDesktopSerp   &vjk=2673b4c1e3ad7ba5
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &fromage=7  &from=searchOnDesktopSerp   &vjk=5fba1366ffc6cb2d
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &fromage=3  &from=searchOnDesktopSerp   &vjk=5fba1366ffc6cb2d
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA    &fromage=1  &from=searchOnDesktopSerp   &vjk=5fba1366ffc6cb2d
+https://www.indeed.com/jobs ?q=Job+Description  &l=Spokane%2C+WA                &from=searchOnDesktopSerp                           &cf-turnstile-response=0.T2OFNnqx0MDhT4ht3JMXNTCD_qNCgoMmPAdHGRLvRnRfIsFTLrhgyKXvGXOd12XSNOJAQ-SdxKmNd61KHYlbPJylPOVLH_nJBggzNWmwHr3XxG-pcd64kMA1wd4qYvBZdhFUbkHScDiebj64GtW2p6SGSrS5k3HzUsiRAGHf-8T-lS3izl0yLYYHs69CGhH5UVzIlMSQsOvdc6SYtMvc6A1cvapGT5EDpi3dpcxvpUUBHeH3anfEEAlbQFD5H3Ua-xmCixpTlZmv9-p84shoK_gU32Fo6dfHXg-whsw2Qb0_S655ProID0U46GsHVaUIuAscUNp3RoPqnRm9VnTXQJk4nw2oh25UKSaySwKuS9ngoTxDXU_9ceFSSdDkewLH2BvIehxNVrxqoFZjf4ucorWMRMz0yhs6130DIWkEl4qnBHNjqpDo4-1qIpob-GsyZ9W2zTfiaiMHzrFuiZTgSWYKDG3-q3pWL0svcTqFh38ADr2kn_1R9I-sfaT-422nK55HBmV6JF8yBy-kjZz2G9bKf0HPlNNCE7K92tgUvk8g36RQbtFoVnTLPgdjJmXTbHYRH1kI718_GasQwYSuyyBocplpKBoSfJl3UFCTzyFkRpuSUk9G3beKWhq-ty5ZZ2jutdO9cHDGjNeQzyJ8nHtnfnS3661XPYpYmKfIkvk7_zgd59Tixnsz2DulBdCe_i0bbPOWePssHggiY7fng1DbErY7fX_vVAU9B8U7I9Axh4oOd4IxJ_4mxOYvNop-YpeXKXDwRy79xdn6cizDhgmFh-y6G7BJa201bVCSn2i9-2PzoxJr80wtX3IeWFfgWTxYxWJ55cEaac6LbnYfa-84wZYRdddqROvJyuSBxbg.WvyuWDoEfRj9Co7qPwltBQ.5cb154e2d4e04cbf183e83ac26cb98d3790548ca2275525d92351c410e355d54&vjk=0d00ba64f645be4e
+
+Indeed, Job Title:
+
+
+Indeed, Job Location:
+
+
+Indeed, Radius:
++-----------------------+-------+---------------+
+| Title                 |
++-----------------------+-------+---------------+
+| Exact Location Only   |
+| Within 
++-----------------------+-------+---------------+
+
+Indeed, Date Posted:
++---------------+-------+---------------+
+|Title          | In    | Out           |
++---------------+-------+---------------+
+| Last 24 Hours | 1     | "&fromage=1"  |
+| Last 3 Days   | 3     | "&fromage=3"  |
+| Last 7 Days   | 7     | "&fromage=7"  |
+| Last 14 Days  | 14    | "&fromage=14" |
+| <No Entry>    | None  | ""            |
++---------------+-------+---------------+
