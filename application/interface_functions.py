@@ -44,61 +44,61 @@ def read_fields(database, table):
     elif database == "searches":
         return searches_db.read_fields(table)
 
-def create_record(database, table, values):
+def create_record(database, table, fields, values):
     if database == "dictionaries":
-        dictionaries_db.create_dictionary(table, values)
+        dictionaries_db.create_dictionary(table, fields, values)
     elif database == "jobs":
-        jobs_db.create_job(table, values)
+        jobs_db.create_job(table, fields, values)
     elif database == "searches":
-        searches_db.create_search(table, values)
+        searches_db.create_search(table, fields, values)
 
-def create_records(database, table, values_list):
+def create_records(database, table, fields_list, values_list):
     if database == "dictionaries":
-        dictionaries_db.create_dictionaries(table, values_list)
+        dictionaries_db.create_dictionaries(table, fields_list, values_list)
     elif database == "jobs":
-        jobs_db.create_jobs(table, values_list)
+        jobs_db.create_jobs(table, fields_list, values_list)
     elif database == "searches":
-        searches_db.create_searches(table, values_list)
+        searches_db.create_searches(table, fields_list, values_list)
 
 def read_record(database, table, id):
     if database == "dictionaries":
-        dictionaries_db.read_dictionary(table, id)
+        return dictionaries_db.read_dictionary(table, id)
     elif database == "jobs":
-        jobs_db.read_job(table, id)
+        return jobs_db.read_job(table, id)
     elif database == "searches":
-        searches_db.read_search(table, id)
+        return searches_db.read_search(table, id)
 
 def read_record_field(database, table, field, value):
     if database == "dictionaries":
-        dictionaries_db.read_dictionary_field(table, field, value)
+        return dictionaries_db.read_dictionary_field(table, field, value)
     elif database == "jobs":
-        jobs_db.read_job_field(table, field, value)
+        return jobs_db.read_job_field(table, field, value)
     elif database == "searches":
-        searches_db.read_search_field(table, field, value)
+        return searches_db.read_search_field(table, field, value)
 
 def read_records(database, table, id_list):
     if database == "dictionaries":
-        dictionaries_db.read_dictionaries(table, id_list)
+        return dictionaries_db.read_dictionaries(table, id_list)
     elif database == "jobs":
-        jobs_db.read_jobs(table, id_list)
+        return jobs_db.read_jobs(table, id_list)
     elif database == "searches":
-        searches_db.read_searches(table, id_list)
+        return searches_db.read_searches(table, id_list)
 
 def read_records_field(database, table, field, value_list):
     if database == "dictionaries":
-        dictionaries_db.read_dictionaries_field(table, field, value_list)
+        return dictionaries_db.read_dictionaries_field(table, field, value_list)
     elif database == "jobs":
-        jobs_db.read_jobs_field(table, field, value_list)
+        return jobs_db.read_jobs_field(table, field, value_list)
     elif database == "searches":
-        searches_db.read_searches_field(table, field, value_list)
+        return searches_db.read_searches_field(table, field, value_list)
 
 def read_all_records(database, table):
     if database == "dictionaries":
-        dictionaries_db.read_all_dictionaries(table)
+        return dictionaries_db.read_all_dictionaries(table)
     elif database == "jobs":
-        jobs_db.read_all_jobs(table)
+        return jobs_db.read_all_jobs(table)
     elif database == "searches":
-        searches_db.read_all_searches(table)
+        return searches_db.read_all_searches(table)
 
 def update_record(database, table, id, fields, values):
     if database == "dictionaries":
@@ -132,6 +132,41 @@ def delete_records_field():
 def delete_all_records():
     pass
 
+def print_table(database, website, filename):
+    header_content = read_fields(database, website)
+    rows_content = read_all_records(database, website)
+    max_characters_in_index = [0] * len(rows_content[0])
+    for index in range(0, len(header_content)):
+        if len(header_content[index]) > max_characters_in_index[index]:
+            max_characters_in_index[index] = len(header_content[index])
+    for row in rows_content:
+        for index in range(0, len(row)):
+            current_thing = row[index]
+            if not isinstance(current_thing, str):
+                current_thing = str(current_thing)
+            if len(current_thing) > max_characters_in_index[index]:
+                max_characters_in_index[index] = len(row[index])
+    dividing_line = "\n+"
+    for index in range(0, len(header_content)):
+        dividing_line += "-" * (max_characters_in_index[index] + 2)
+        dividing_line += "+"
+    text_to_output = dividing_line
+    text_to_output += "\n|"
+    for index in range(0, len(header_content)):
+        text_to_output += f" {header_content[index] + (' ' * (max_characters_in_index[index] - len(header_content[index])))} |"
+    text_to_output += dividing_line
+    for row in rows_content:
+        text_to_output += "\n|"
+        for index in range(0, len(row)):
+            current_thing = row[index]
+            if not isinstance(current_thing, str):
+                current_thing = str(current_thing)
+            text_to_output += f" {current_thing + (' ' * (max_characters_in_index[index] - len(current_thing)))} |"
+    text_to_output += dividing_line
+    with open(f"{filename}.txt", 'w') as f:
+        print(text_to_output, file=f)
+
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # % Web Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
@@ -142,33 +177,8 @@ def delete_all_records():
 # % Composite Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
-def run_dictionary_update(website, field, input_list):
-    if website == "glassdoor":
-        found_value = glassdoor.find_corresponding_url_value(website, field, input_list)
-    elif website == "indeed":
-        found_value = indeed.find_corresponding_url_value(website, field, input_list)
-    elif website == "linkedin":
-        found_value = linkedin.find_corresponding_url_value(website, field, input_list)
-    elif website == "monster":
-        found_value = monster.find_corresponding_url_value(website, field, input_list)
-    elif website == "ziprecruiter":
-        found_value = ziprecruiter.find_corresponding_url_value(website, field, input_list)
-    records_to_update = read_records_field("dictionaries", website, field, input_list)
-    records_to_create = []
-    """
-    LOGIC TO CREATE records_to_create
-    """
-    """
-    LOGIC TO UPDATE ALL OF records_to_update
-    """
-    for record in records_to_create:
-        create_record("dictionaries", website, record)
-        
-    
-
-def run_search(website, parameters):
-    # BELOW LINE WILL NEED TO BE EDITED TO GET URL_LIST OUT OF RETURNED DATA
-    url_list = read_record_field("searches", website, "parameters", parameters)
+def run_search(website, search_id):
+    url_list = read_record("searches", website, search_id)[2]
     if website == "glassdoor":
         found_ids = glassdoor.search(url_list)
     elif website == "indeed":
@@ -179,8 +189,7 @@ def run_search(website, parameters):
         found_ids = monster.search(url_list)
     elif website == "ziprecruiter":
         found_ids = ziprecruiter.search(url_list)
-    # BELOW LINE WILL PROBABLY NEED TO BE EDITED TO EXTRACT VALUES
-    old_ids = read_all_records("jobs", website)
+    old_ids = [record[0] for record in read_all_records("jobs", website)]
     new_ids = []
     for id in found_ids:
         if id not in old_ids:
@@ -198,3 +207,64 @@ def run_search(website, parameters):
             all_jobs_data = ziprecruiter.process_jobs(new_ids)
     for job_data in all_jobs_data:
         create_record("jobs", website, job_data)
+
+def process_create_search(website, parameters):
+    process_search_parameters(website, parameters)
+    website_dictionaries = {}
+    dictionaries_names = []
+    all_parameters_values = []
+    for key, value in parameters.items():
+        website_dictionaries[key] = read_record_field("dictionaries", website, "parameter", key)
+        dictionaries_names.append(key)
+        all_parameters_values.append(value)
+    while len(all_parameters_values) > 1:
+        first_list = all_parameters_values.pop(1)
+        second_list = all_parameters_values.pop(1)
+        combined_list = []
+        for first_item in first_list:
+            for second_item in second_list:
+                combined_list.push(first_item + second_item)
+        all_parameters_values.insert(0, combined_list)
+    all_parameters_values_combined = all_parameters_values[0]
+    all_urls = []
+    for parameters_list in all_parameters_values_combined:
+        if website == "glassdoor":
+            current_url = ""
+        elif website == "indeed":
+            current_url = "https://www.indeed.com/jobs"
+        elif website == "linkedin":
+            current_url = "https://www.linkedin.com/jobs/search/"
+        elif website == "monster":
+            current_url = ""
+        elif website == "ziprecruiter":
+            current_url = ""
+        for index in range(0, len(parameters_list)):
+            current_url += website_dictionaries[dictionaries_names[index]][parameters_list[index]]
+        all_urls.append(current_url)
+    create_record("searches", website, ["parameters", "urls"], [parameters, all_urls])
+
+
+def process_search_parameters(website, parameters):
+    website_dictionaries = {}
+    dictionaries_to_create = []
+    dictionaries_to_update = []
+    for key, value in parameters.items():
+        website_dictionaries[key] = read_record_field("dictionaries", website, "parameter", key)
+        if website_dictionaries[key] == None:
+            dictionaries_to_create.append([key, value])
+        elif not all(parameter in website_dictionaries[key] for parameter in parameters[key]):
+            dictionaries_to_update.append([key, value])
+    for dictionary in dictionaries_to_create:
+        if website == "glassdoor":
+            new_dictionary = glassdoor.prepare_search_dictionary(key, value)
+        elif website == "indeed":
+            new_dictionary = indeed.prepare_search_dictionary(key, value)
+        elif website == "linkedin":
+            new_dictionary = linkedin.prepare_search_dictionary(key, value)
+        elif website == "monster":
+            new_dictionary = monster.prepare_search_dictionary(key, value)
+        elif website == "ziprecruiter":
+            new_dictionary = ziprecruiter.prepare_search_dictionary(key, value)
+        create_record("dictionaries", website, ["parameter", "dictionary"], [key, new_dictionary])
+    for dictionary in dictionaries_to_update:
+            pass

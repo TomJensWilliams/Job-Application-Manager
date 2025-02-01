@@ -2,25 +2,18 @@ from interface_functions import *
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
-def test_run_search():
-    job_parameters = [
-        {
-            "job_title": "Help Desk",
-            "job_location": "Liberty Lake, WA",
-            "date_posted": "3",
-            "search_radius": "50"
-        }
-    ]
-    run_search("indeed", job_parameters)
-
-def test_create_search():
-    job_parameters = {
-        "job_title": "Help Desk",
-        "job_location": "Liberty Lake, WA",
-        "date_posted": "3",
-        "search_radius": "50"
-    }
-    create_search("indeed", job_parameters)
+parameters = [
+    {
+        "search_title": ["Help Desk", "Desktop Support"],
+        "search_location": ["Post Falls, ID", "Liberty, Lake"],
+        "date_posted": ["Last 3 days"],
+        "distance": ["Within 50 miles"]
+    },
+]
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # Run functions below:
+
+# print_table("dictionaries", "indeed", "test")
+
+process_create_search("indeed", parameters)

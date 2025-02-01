@@ -10,7 +10,7 @@ def create_database():
 def create_table(table, fields, datatypes):
     statement = f"CREATE TABLE IF NOT EXISTS {table}(\n"
     for index in range(0, len(fields)):
-        statement += f"\t{fields[index]} {datatypes[index]}{' PRIMARY KEY' if index == 0 else ''}{',' if index != len(fields) - 1 else ''}\n"
+        statement += f"\t{fields[index]} {datatypes[index]}{',' if index != len(fields) - 1 else ''}\n"
     statement += ");"
     print(statement)
     try:
@@ -26,7 +26,7 @@ def create_tables(table_list, fields_list, datatypes_list):
     for outer_index in range(0, len(table_list)):
         statement = f"CREATE TABLE IF NOT EXISTS {table_list[outer_index]}(\n"
         for index in range(0, len(fields_list[outer_index])):
-            statment += f"\t{fields_list[outer_index][index]} {datatypes_list[outer_index][index]}{' PRIMARY KEY' if index == 0 else ''}{',' if index != len(fields_list[outer_index]) - 1 else ''}\n"
+            statment += f"\t{fields_list[outer_index][index]} {datatypes_list[outer_index][index]}{',' if index != len(fields_list[outer_index]) - 1 else ''}\n"
         statement += ");"
         print(statement)
         try:
@@ -50,10 +50,13 @@ def read_fields(table):
         print("Failed to read fields:", e)
     return output
 
-def create_search(table, values):
+def create_search(table, fields,  values):
     statement = f"INSERT INTO {table}("
+    for index in range(0, len(fields)):
+        statement += f"{',' if index != 0 else ''}{fields[index]}"
+    statement += ") VALUES("
     for index in range(0, len(values)):
-        statement = f"{',' if index != 0 else ''}{values[index]}"
+        statement += f"{',' if index != 0 else ''}{values[index]}"
     statement += ");"
     print(statement)
     try:
@@ -66,12 +69,15 @@ def create_search(table, values):
     except sqlite3.Error as e:
         print("Failed to create search:", e)
 
-def create_searches(table, values_list):
+def create_searches(table, fields_list, values_list):
     output = []
-    for values in values_list:
+    for outer_index in range(0, len(fields_list)):
         statement = f"INSERT INTO {table}("
-        for index in range(0, len(values)):
-            statement = f"{',' if index != 0 else ''}{values[index]}"
+        for index in range(0, len(fields_list[outer_index])):
+            statement += f"{',' if index != 0 else ''}{fields_list[outer_index][index]}"
+        statement += ") VALUES("
+        for index in range(0, len(values_list[outer_index])):
+            statement += f"{',' if index != 0 else ''}{values_list[outer_index][index]}"
         statement += ");"
         print(statement)
         try:
@@ -184,12 +190,12 @@ def update_searches(table, id_list, fields_list, values_list):
         except sqlite3.OperationalError as e:
             print("Failed to update search:", e)
 
-def update_searches_field(table, search_field, search_value_list, fields_list, values_list):
-    for outer_index in range(0, search_value_list):
+def update_searches_field(table, search_field_list, search_value_list, fields_list, values_list):
+    for outer_index in range(0, search_field_list):
         statement = f"UPDATE {table} SET"
         for index in range(0, len(fields_list[outer_index])):
             statement += f"{',' if index != 0 else ''} {fields_list[outer_index][index]} = {values_list[outer_index][index]}"
-        statement += f"WHERE {search_field} = {search_value_list[outer_index]}"
+        statement += f"WHERE {search_field_list[outer_index]} = {search_value_list[outer_index]}"
         print(statement)
         try:
             with sqlite3.connect("./databases/searches.db") as conn:
@@ -202,16 +208,48 @@ def update_searches_field(table, search_field, search_value_list, fields_list, v
 # def update_all_searches(table, ): I don't think this needs to exits, unless there were differnt update values for each entry, which is what update_searches is for
 
 def delete_search(table, id):
-    pass
+    try:
+        with sqlite3.connect("./databases/searches.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM {table} WHERE id = {id};")
+            conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed to delete search:", e)
 
-def delete_search_parameters(table, parameters):
-    pass
+def delete_search_parameters(table, field, value):
+    try:
+        with sqlite3.connect("./databases/searches.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM {table} WHERE {field} = {value};")
+            conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed to delete search:", e)
 
 def delete_searches(table, id_list):
-    pass
+    for id in id_list:
+        try:
+            with sqlite3.connect("./databases/searches.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute(f"DELETE FROM {table} WHERE id = {id};")
+                conn.commit()
+        except sqlite3.OperationalError as e:
+            print("Failed to delete search:", e)
 
-def delete_searches_parameters(table, parameters_list):
-    pass
+def delete_searches_parameters(table, field_list, value_list):
+    for index in range(0, len(field_list)):
+        try:
+            with sqlite3.connect("./databases/searches.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute(f"DELETE FROM {table} WHERE {field_list[index]} = {value_list[index]};")
+                conn.commit()
+        except sqlite3.OperationalError as e:
+            print("Failed to delete search:", e)
 
 def delete_all_searches(table):
-    pass
+    try:
+        with sqlite3.connect("./databases/searches.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM {table};")
+            conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Failed to delete search:", e)

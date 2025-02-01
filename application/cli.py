@@ -49,7 +49,7 @@ def handle_read_job(website):
             print(read_job(website, job_id))
         print("\n")
     elif how_many_jobs == "all":
-        for job in read_jobs(website):
+        for job in read_all_records(website):
             print(job)
         print("\n")
 
@@ -108,6 +108,25 @@ def ask_until_answered_open(question, options):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 while True:
+    database = handle_database_input()
+    website = hande_website_input()
+    action = handle_action_input(database)
+    quantity = handle_quantity_input(action)
+    if action == "create" and quantity == "one":
+        pass
+    elif action == "create" and quantity == "multiple":
+    elif action == "read" and quantity == "one":
+    elif action == "read" and quantity == "multiple":
+    elif action == "read" and quantity == "all":
+    elif action == "update" and quantity == "one":
+    elif action == "update" and quantity == "multiple":
+    elif action == "delete" and quantity == "one":
+    elif action == "delete" and quantity == "multiple":
+    elif action == "delete" and quantity == "all":
+    elif action == "run" and quantity == "one":
+    elif action == "run" and quantity == "multiple":
+    elif action == "run" and quantity == "all":
+
     website = handle_website_input()
     if website == "exit":
         break

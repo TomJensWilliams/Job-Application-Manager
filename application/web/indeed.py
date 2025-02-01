@@ -37,3 +37,6 @@ def process_jobs(jks):
         job_note = ""
         output.append([jks[index], job_applied, job_title, job_company, job_location, job_address, job_number, job_email, job_website, job_date, job_note])
     return output
+
+def prepare_search_dictionary(key, values):
+    pass

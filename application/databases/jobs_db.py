@@ -10,7 +10,7 @@ def create_database():
 def create_table(table, fields, datatypes):
     statement = f"CREATE TABLE IF NOT EXISTS {table}(\n"
     for index in range(0, len(fields)):
-        statement += f"\t{fields[index]} {datatypes[index]}{' PRIMARY KEY' if index == 0 else ''}{',' if index != len(fields) - 1 else ''}\n"
+        statement += f"\t{fields[index]} {datatypes[index]}{',' if index != len(fields) - 1 else ''}\n"
     statement += ");"
     print(statement)
     try:
@@ -26,7 +26,7 @@ def create_tables(table_list, fields_list, datatypes_list):
     for outer_index in range(0, len(table_list)):
         statement = f"CREATE TABLE IF NOT EXISTS {table_list[outer_index]}(\n"
         for index in range(0, len(fields_list[outer_index])):
-            statment += f"\t{fields_list[outer_index][index]} {datatypes_list[outer_index][index]}{' PRIMARY KEY' if index == 0 else ''}{',' if index != len(fields_list[outer_index]) - 1 else ''}\n"
+            statment += f"\t{fields_list[outer_index][index]} {datatypes_list[outer_index][index]}{',' if index != len(fields_list[outer_index]) - 1 else ''}\n"
         statement += ");"
         print(statement)
         try:
@@ -50,10 +50,13 @@ def read_fields(table):
         print("Failed to read fields:", e)
     return output
 
-def create_job(table, values):
+def create_job(table, fields, values):
     statement = f"INSERT INTO {table}("
+    for index in range(0, len(fields)):
+        statement += f"{',' if index != 0 else ''}{fields[index]}"
+    statement += ") VALUES("
     for index in range(0, len(values)):
-        statement = f"{',' if index != 0 else ''}{values[index]}"
+        statement += f"{',' if index != 0 else ''}{values[index]}"
     statement += ");"
     print(statement)
     try:
@@ -66,12 +69,15 @@ def create_job(table, values):
     except sqlite3.Error as e:
         print("Failed to create search:", e)
 
-def create_jobs(table, values_list):
+def create_jobs(table, fields_list, values_list):
     output = []
-    for values in values_list:
+    for outer_index in range(0, len(fields_list)):
         statement = f"INSERT INTO {table}("
-        for index in range(0, len(values)):
-            statement = f"{',' if index != 0 else ''}{values[index]}"
+        for index in range(0, len(fields_list[outer_index])):
+            statement += f"{',' if index != 0 else ''}{fields_list[outer_index][index]}"
+        statement += ") VALUES("
+        for index in range(0, len(values_list[outer_index])):
+            statement += f"{',' if index != 0 else ''}{values_list[outer_index][index]}"
         statement += ");"
         print(statement)
         try:
