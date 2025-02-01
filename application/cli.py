@@ -113,10 +113,15 @@ while True:
     action = handle_action_input(database)
     quantity = handle_quantity_input(action)
     if action == "create" and quantity == "one":
-        pass
+        
     elif action == "create" and quantity == "multiple":
+
     elif action == "read" and quantity == "one":
+        id = handle_id_input()
+        read_record(database, website, id)
     elif action == "read" and quantity == "multiple":
+        id_list = handle_id_list_input()
+        read_records
     elif action == "read" and quantity == "all":
     elif action == "update" and quantity == "one":
     elif action == "update" and quantity == "multiple":

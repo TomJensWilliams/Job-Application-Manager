@@ -3,110 +3,156 @@ from web import indeed
 from web import linkedin
 from web import monster
 from web import ziprecruiter
-from databases import jobs_db
-from databases import searches_db
-from databases import dictionaries_db
+from application.databases import OLD_jobs_db
+from application.databases import Old_searches_db
+from application.databases import OLD_dictionaries_db
+from databases import database_functions
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # %% Database Functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
+# Databases
+
 def create_database(database):
+    database_functions.create_database(database)
+    return
     if database == "dictionaries":
-        dictionaries_db.create_database()
+        OLD_dictionaries_db.create_database()
     elif database == "jobs":
-        jobs_db.create_database()
+        OLD_jobs_db.create_database()
     elif database == "searches":
-        searches_db.create_database()
+        Old_searches_db.create_database()
+
+def create_databases(database_list):
+    database_functions.create_databases(database_list)
+
+# Tables
 
 def create_table(database, table, fields, datatypes):
+    database_functions.create_table(database, table, fields, datatypes)
+    return
     if database == "dictionaries":
-        dictionaries_db.create_table(table, fields, datatypes)
+        OLD_dictionaries_db.create_table(table, fields, datatypes)
     elif database == "jobs":
-        jobs_db.create_table(table, fields, datatypes)
+        OLD_jobs_db.create_table(table, fields, datatypes)
     elif database == "searches":
-        searches_db.create_table(table, fields, datatypes)
+        Old_searches_db.create_table(table, fields, datatypes)
 
 def create_tables(database, table_list, fields_list, datatypes_list):
+    database_functions.create_tables(database, table_list, fields_list, datatypes_list)
+    return
     if database == "dictionaries":
-        dictionaries_db.create_tables(table_list, fields_list, datatypes_list)
+        OLD_dictionaries_db.create_tables(table_list, fields_list, datatypes_list)
     elif database == "jobs":
-        jobs_db.create_tables(table_list, fields_list, datatypes_list)
+        OLD_jobs_db.create_tables(table_list, fields_list, datatypes_list)
     elif database == "searches":
-        searches_db.create_tables(table_list, fields_list, datatypes_list)
+        Old_searches_db.create_tables(table_list, fields_list, datatypes_list)
+
+def read_table():
+    pass
+
+def read_tables():
+    pass
+
+def read_all_tables():
+    pass
+
+def update_table():
+    pass
+
+def update_tables():
+    pass
+
+def update_all_tables():
+    pass
+
+def delete_table():
+    pass
+
+def delete_tables():
+    pass
+
+def delete_all_tables():
+    pass
+
+def read_fields():
+    pass
+
+# Records
 
 def read_fields(database, table):
     if database == "dictionaries":
-        return dictionaries_db.read_fields(table)
+        return OLD_dictionaries_db.read_fields(table)
     elif database == "jobs":
-        return jobs_db.read_fields(table)
+        return OLD_jobs_db.read_fields(table)
     elif database == "searches":
-        return searches_db.read_fields(table)
+        return Old_searches_db.read_fields(table)
 
 def create_record(database, table, fields, values):
     if database == "dictionaries":
-        dictionaries_db.create_dictionary(table, fields, values)
+        OLD_dictionaries_db.create_dictionary(table, fields, values)
     elif database == "jobs":
-        jobs_db.create_job(table, fields, values)
+        OLD_jobs_db.create_job(table, fields, values)
     elif database == "searches":
-        searches_db.create_search(table, fields, values)
+        Old_searches_db.create_search(table, fields, values)
 
 def create_records(database, table, fields_list, values_list):
     if database == "dictionaries":
-        dictionaries_db.create_dictionaries(table, fields_list, values_list)
+        OLD_dictionaries_db.create_dictionaries(table, fields_list, values_list)
     elif database == "jobs":
-        jobs_db.create_jobs(table, fields_list, values_list)
+        OLD_jobs_db.create_jobs(table, fields_list, values_list)
     elif database == "searches":
-        searches_db.create_searches(table, fields_list, values_list)
+        Old_searches_db.create_searches(table, fields_list, values_list)
 
 def read_record(database, table, id):
     if database == "dictionaries":
-        return dictionaries_db.read_dictionary(table, id)
+        return OLD_dictionaries_db.read_dictionary(table, id)
     elif database == "jobs":
-        return jobs_db.read_job(table, id)
+        return OLD_jobs_db.read_job(table, id)
     elif database == "searches":
-        return searches_db.read_search(table, id)
+        return Old_searches_db.read_search(table, id)
 
 def read_record_field(database, table, field, value):
     if database == "dictionaries":
-        return dictionaries_db.read_dictionary_field(table, field, value)
+        return OLD_dictionaries_db.read_dictionary_field(table, field, value)
     elif database == "jobs":
-        return jobs_db.read_job_field(table, field, value)
+        return OLD_jobs_db.read_job_field(table, field, value)
     elif database == "searches":
-        return searches_db.read_search_field(table, field, value)
+        return Old_searches_db.read_search_field(table, field, value)
 
 def read_records(database, table, id_list):
     if database == "dictionaries":
-        return dictionaries_db.read_dictionaries(table, id_list)
+        return OLD_dictionaries_db.read_dictionaries(table, id_list)
     elif database == "jobs":
-        return jobs_db.read_jobs(table, id_list)
+        return OLD_jobs_db.read_jobs(table, id_list)
     elif database == "searches":
-        return searches_db.read_searches(table, id_list)
+        return Old_searches_db.read_searches(table, id_list)
 
 def read_records_field(database, table, field, value_list):
     if database == "dictionaries":
-        return dictionaries_db.read_dictionaries_field(table, field, value_list)
+        return OLD_dictionaries_db.read_dictionaries_field(table, field, value_list)
     elif database == "jobs":
-        return jobs_db.read_jobs_field(table, field, value_list)
+        return OLD_jobs_db.read_jobs_field(table, field, value_list)
     elif database == "searches":
-        return searches_db.read_searches_field(table, field, value_list)
+        return Old_searches_db.read_searches_field(table, field, value_list)
 
 def read_all_records(database, table):
     if database == "dictionaries":
-        return dictionaries_db.read_all_dictionaries(table)
+        return OLD_dictionaries_db.read_all_dictionaries(table)
     elif database == "jobs":
-        return jobs_db.read_all_jobs(table)
+        return OLD_jobs_db.read_all_jobs(table)
     elif database == "searches":
-        return searches_db.read_all_searches(table)
+        return Old_searches_db.read_all_searches(table)
 
 def update_record(database, table, id, fields, values):
     if database == "dictionaries":
-        dictionaries_db.update_dictionary(table, id, fields, values)
+        OLD_dictionaries_db.update_dictionary(table, id, fields, values)
     elif database == "jobs":
-        jobs_db.update_job(table, id, fields, values)
+        OLD_jobs_db.update_job(table, id, fields, values)
     elif database == "searches":
-        searches_db.update_search(table, id, fields, values)
+        Old_searches_db.update_search(table, id, fields, values)
 
 def update_record_field(database, table, search_field, search_value, fields, values):
     pass
