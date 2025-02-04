@@ -1,3 +1,4 @@
+"""
 import re
 from web.tools.misc_tools import *
 from web.tools.pyautogui_tools import *
@@ -40,3 +41,4 @@ def process_jobs(jks):
 
 def prepare_search_dictionary(key, values):
     pass
+"""

@@ -53,7 +53,7 @@ def re_search(pattern, text):
 def prepare_urls(id_list, unformatted_url):
     output =[]
     for id in id_list:
-        output.append(unformatted_url.format(id))
+        output.append(f"{unformatted_url.format(id)}\n\n")
     return output
 
 

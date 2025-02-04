@@ -1,7 +1,7 @@
 import pyautogui
 import pyscreeze
 import time
-from web.tools.misc_tools import *
+from web.websites.tools.misc_tools import *
 
 #########
 # NOTES #
@@ -223,14 +223,14 @@ def get_html():
     press_hotkey(['ctrl', 'shift', 'j'])
     return html_content
 
-def open_tabs_and_windows(id_list, unformatted_url):
+def open_tabs_and_windows(id_list, unformatted_url, inspec_wait=5):
     output = []
     current_tabs = 1
     last_was_tabs = True
     url_list = prepare_urls(id_list, unformatted_url)
     for url in url_list:
         open_url(url)
-        for x in range(0, 5):
+        for x in range(0, inspec_wait):
             print(x)
             wait_seconds(1)
         output.append(get_html())
