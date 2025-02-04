@@ -37,5 +37,5 @@ def process_job_ids(website, new_ids, job_fields, /, *, broswer_wait=2, inspect_
 def process_search_parameters(table, parameters, /, *, print_statements=False):
     pass
 
-def get_base_url(table):
-    pass
+def get_base_url(website):
+    return get_website_functions(website).search_base_url()

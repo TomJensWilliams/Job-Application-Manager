@@ -11,8 +11,10 @@ def open_google_chrome():
 
 # Time:
 
-def wait_seconds(input):
-    time.sleep(input)
+def wait_seconds(input, print_statements=True):
+    for index in range(0, input):
+        if print_statements: print(index)
+        time.sleep(1)
 
 # Datetime:
 

@@ -42,16 +42,27 @@ def read_fields(database, table, /, *, rowid=False, print_statements=False):
     except sqlite3.Error as e:
         print("Failed to read fields:", e)
 
+def read_fields_datatypes(database, table, /, *, print_statements=False):
+    statement = f"PRAGMA table_info({table})"
+    try:
+        with sqlite3.connect(f"./databases/{database}.db") as conn:
+            cursor = conn.cursor()
+            if print_statements: print(statement)
+            cursor.execute(statement)
+            datatypes = [detail[2] for detail in cursor.fetchall()]
+            if print_statements: print(f"datatypes read from {table} sucessfully")
+            return datatypes
+    except sqlite3.Error as e:
+        print("Failed to read field datatypes:", e)
+
 # Records
 
 def create_record(database, table, fields, values, /, *, print_statements=False):
-    # Expand to allow for records with only some fields defined?
     for index in range(0, len(values)):
-        try:
+        if isinstance(values[index], str) or isinstance(values[index], int):
+            pass
+        else: 
             values[index] = json.dumps(values[index])
-        except TypeError as e:
-            print("Type Error in create_record:", e)
-            values[index] = None
     statement = f"INSERT INTO {table} ("
     for index in range(0, len(fields)):
         statement += f"{',' if index != 0 else ''}{fields[index]}"
@@ -101,12 +112,21 @@ def read_records(database, table, /, *, rowid=False, selections=None, fields=Non
                 if print_statements: print(statement, tuple(values))
                 cursor.execute(statement, tuple(values))
             rows = cursor.fetchall()
+            output = []
+            for row in rows:
+                current_array = []
+                for element in row:
+                    if not isinstance(element, int):
+                        current_array.append(json.loads(element))
+                    else:
+                        current_array.append(element)
             if print_statements: print(f"Read records successfully.")
             return rows
     except sqlite3.Error as e:
         print("Failed to read records:", e)
 
 def update_records(database, table, update_fields, update_values, /, *, match_fields, match_values, print_statements=False):
+    if print_statements: print(read_records(database, table))
     if update_values != None:
         for index in range(0, len(update_values)):
             try:
@@ -136,6 +156,7 @@ def update_records(database, table, update_fields, update_values, /, *, match_fi
                 if print_statements: print(statement, tuple(update_values))
                 cursor.execute(statement, tuple(update_values))
             else:
+                if print_statements: print(update_values, match_values)
                 if print_statements: print(statement, tuple(update_values + match_values))
                 cursor.execute(statement, tuple(update_values + match_values))
             conn.commit()

@@ -33,3 +33,6 @@ def prepare_job_data(new_ids, job_fields, html_content):
         job_note = ""
         output.append([new_ids[index], job_applied, job_title, job_company, job_location, job_address, job_number, job_email, job_website, job_date, job_note])
     return output
+
+def search_base_url(*, print_statements=False):
+    return "https://www.indeed.com/jobs"

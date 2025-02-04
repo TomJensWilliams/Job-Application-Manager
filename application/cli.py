@@ -287,8 +287,8 @@ def handle_print(database, table, /, *,  print_statements=False):
     else:
         print_table(database, table, filename, print_statements=print_statements)
 
-def handle_run(table, /, *,  print_statement=False):
-    rowid_input = free_user_input("What is the rowid associated with the search you would like to run?")
+def handle_run(table, /, *,  print_statement=True):
+    rowid_input = int(free_user_input("What is the rowid associated with the search you would like to run?"))
     if rowid_input == "exit":
         return
     else:

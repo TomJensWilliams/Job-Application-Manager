@@ -31,7 +31,7 @@ def create_record(database, table, fields, values, /, *, print_statements=False)
 def read_records(database, table, /, *, rowid=False, selections=None, fields=None, values=None, print_statements=False):
     return database_functions.read_records(database, table, rowid=rowid, selections=selections, fields=fields, values=values, print_statements=print_statements)
     
-def update_records(database, table, update_fields, update_values, /, *, match_fields=None, match_values=None, print_statements=False):
+def update_records(database, table, update_fields, update_values, /, *, match_fields=None, match_values=None, print_statements=True):
     database_functions.update_records(database, table, update_fields, update_values, match_fields=match_fields, match_values=match_values, print_statements=print_statements)
 
 def delete_records(database, table, /, *, fields=None, values=None, print_statements=False):
@@ -74,7 +74,7 @@ def print_table(database, table, filename, /, *, print_statements=False):
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
 def run_search(table, search_id, /, *, print_statements=False):
-    url_list = database_functions.read_records("searches", table, rowid=False, selections=["urls"], fields=["rowid"], values=[search_id], print_statements=print_statements)
+    url_list = json.loads(database_functions.read_records("searches", table, rowid=False, selections=["urls"], fields=["rowid"], values=[search_id], print_statements=print_statements)[0][0])
     found_ids = website_functions.retrieve_job_ids(table, url_list, print_statements=print_statements)
     old_ids = database_functions.read_records("searches", table, rowid=False, selections=["job_id"], fields=None, values=None, print_statements=print_statements)
     new_ids = []
@@ -85,37 +85,6 @@ def run_search(table, search_id, /, *, print_statements=False):
     all_jobs_data = website_functions.process_job_ids(table, new_ids, job_fields, print_statements=print_statements)
     for job_data in all_jobs_data:
         create_record("jobs", table, job_fields, job_data, print_statements=print_statements)
-    """
-    url_list = read_records(database, website, selections="urls", fields="rowid", values=search_id, print_statements=print_statement)
-    if website == "glassdoor":
-        found_ids = glassdoor.search(url_list)
-    elif website == "indeed":
-        found_ids = indeed.search(url_list)
-    elif website == "linkedin":
-        found_ids = linkedin.search(url_list)
-    elif website == "monster":
-        found_ids = monster.search(url_list)
-    elif website == "ziprecruiter":
-        found_ids = ziprecruiter.search(url_list)
-    old_ids = read_records(database, website, selections="job_id", fields=None, values=None, print_statements=print_statement)
-    new_ids = []
-    for id in found_ids:
-        if id not in old_ids:
-            new_ids.append(id)
-    for id in new_ids:
-        if website == "glassdoor":
-            all_jobs_data = glassdoor.process_jobs(new_ids)
-        elif website == "indeed":
-            all_jobs_data = indeed.process_jobs(new_ids)
-        elif website == "linkedin":
-            all_jobs_data = linkedin.process_jobs(new_ids)
-        elif website == "monster":
-            all_jobs_data = monster.process_jobs(new_ids)
-        elif website == "ziprecruiter":
-            all_jobs_data = ziprecruiter.process_jobs(new_ids)
-    for job_data in all_jobs_data:
-        create_record("jobs", website, job_data)
-    """
 
 def prepare_search(table, parameters, /, *, print_statements=False):
     create_and_update_dictionaries(table, parameters, print_statements=print_statements)
@@ -123,16 +92,19 @@ def prepare_search(table, parameters, /, *, print_statements=False):
     base_url = website_functions.get_base_url(table)
     urls = [base_url]
     for key in parameters:
-        current_key_index = [element[0] for element in keyed_dictionaries].index(key)
+        current_key_index = [json.loads(element[0]) for element in keyed_dictionaries].index(key)
         for index in range(0, len(parameters[key])):
             old_urls = copy.copy(urls)
             old_length = len(urls)
             if index == 0:
                 for url_index in range(0, old_length):
-                    urls[url_index] += keyed_dictionaries[current_key_index][parameters[key][index]]
+                    urls[url_index] += json.loads(keyed_dictionaries[current_key_index][1])[parameters[key][index]]
             else:
                 for url_index in range(0, old_length):
-                    urls.append(f"{old_urls[url_index]}{keyed_dictionaries[current_key_index][parameters[key][index]]}")
+                    urls.append(f"{old_urls[url_index]}{json.loads(keyed_dictionaries[current_key_index][1])[parameters[key][index]]}")
+    for index in range(0, len(urls)):
+        urls[index] += "\n\n"
+        print(urls[index])
     database_functions.create_record("searches", table, ["parameters", "urls"], [parameters, urls], print_statements=print_statements)
 
 def create_and_update_dictionaries(table, parameters, /, *, print_statements=False):
@@ -162,7 +134,6 @@ def create_and_update_dictionaries(table, parameters, /, *, print_statements=Fal
             all_parameters.append(object)
         dictionary_contents = website_functions.process_search_parameters(table, all_parameters, print_statements=print_statements)
         for index in range(0, update_index):
-            print(f"{index} {update_index} {len(dictionary_contents)}")
             database_functions.create_record("dictionaries", table, dictionary_contents[index]["key"], dictionary_contents[index]["dictionary"], print_statements=print_statements)
         for index in range(update_index, len(dictionary_contents)):
             new_dictionary = old_key_dictionary_pairs[old_keys.index(dictionary_contents[index]["key"])][1]

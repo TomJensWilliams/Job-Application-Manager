@@ -124,7 +124,7 @@ def take_screenshot(region=None, filename=None):
 
 def locate_on_screen(filename, confidence=0.9):
     try:
-        return pyautogui.locateOnScreen(f"./web/pictures/{filename}", confidence=confidence)
+        return pyautogui.locateOnScreen(f"./web/websites/pictures/{filename}", confidence=confidence)
     except pyscreeze.ImageNotFoundException:
         return []
     except pyautogui.ImageNotFoundException:
@@ -201,10 +201,9 @@ def wait_for_locate(filename, confidence=0.9, waittime=50):
 def get_all_html(urls_list, inspect_wait):
     output = []
     for url in urls_list:
-        open_url(url)
-        for x in range(0, inspect_wait):
-            print(x)
-            wait_seconds(1)
+        print(f"#{url}#")
+        open_url(url, 0.01)
+        wait_seconds(inspect_wait)
         output.append(get_html())
     return
 
