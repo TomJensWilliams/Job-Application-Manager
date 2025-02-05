@@ -1,5 +1,10 @@
+import os
+import sys
+if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
+    sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
 import sqlite3
 import json
+import datetime
 
 # Databases
 
@@ -83,11 +88,10 @@ def create_record(database, table, fields, values, /, *, print_statements=False)
 def read_records(database, table, /, *, rowid=False, selections=None, fields=None, values=None, print_statements=False):
     if values != None:
         for index in range(0, len(values)):
-            try:
+            if isinstance(values[index], str) or isinstance(values[index], int):
+                pass
+            else: 
                 values[index] = json.dumps(values[index])
-            except TypeError as e:
-                print("Type Error in read_records:", e)
-                values[index] = None
     statement = f"SELECT {'rowid' if rowid else ''}"
     if selections == None:
         statement += f"{', ' if rowid else ''}*"
@@ -114,31 +118,35 @@ def read_records(database, table, /, *, rowid=False, selections=None, fields=Non
             rows = cursor.fetchall()
             output = []
             for row in rows:
-                current_array = []
+                current_list = []
                 for element in row:
-                    if not isinstance(element, int):
-                        current_array.append(json.loads(element))
+                    if isinstance(element, int):
+                        current_list.append(element)
                     else:
-                        current_array.append(element)
+                        try:
+                            current_list.append(json.loads(element))
+                        except json.decoder.JSONDecodeError as e:
+                            current_list.append(element)
+                output.append(current_list)
             if print_statements: print(f"Read records successfully.")
-            return rows
+            return output
     except sqlite3.Error as e:
         print("Failed to read records:", e)
 
-def update_records(database, table, update_fields, update_values, /, *, match_fields, match_values, print_statements=False):
+def update_records(database, table, update_fields, update_values, /, *, match_fields=None, match_values=None, print_statements=False):
     if print_statements: print(read_records(database, table))
     if update_values != None:
         for index in range(0, len(update_values)):
-            try:
+            if isinstance(update_values[index], str) or isinstance(update_values[index], int):
+                pass
+            else: 
                 update_values[index] = json.dumps(update_values[index])
-            except TypeError as e:
-                print("Type Error in update_records:", e)
     if match_values != None:
         for index in range(0, len(match_values)):
-            try:
+            if isinstance(match_values[index], str) or isinstance(match_values[index], int):
+                pass
+            else: 
                 match_values[index] = json.dumps(match_values[index])
-            except TypeError as e:
-                print("Type Error in update_records:", e)
     statement = f"UPDATE {table} SET"
     for index in range(0, len(update_fields)):
         statement += f"{',' if index != 0 else ''} {update_fields[index]} = ?"
@@ -164,14 +172,13 @@ def update_records(database, table, update_fields, update_values, /, *, match_fi
     except sqlite3.OperationalError as e:
         print("Failed to update records:", e)
 
-def delete_records(database, table, fields=None, values=None, print_statements=False):
+def delete_records(database, table, /, *, fields=None, values=None, print_statements=False):
     if values != None:
         for index in range(0, len(values)):
-            try:
+            if isinstance(values[index], str) or isinstance(values[index], int):
+                pass
+            else: 
                 values[index] = json.dumps(values[index])
-            except TypeError as e:
-                print("Type Error in read_records:", e)
-                values[index] = None
     statement = f"DELETE FROM {table}"
     if fields == None:
         pass

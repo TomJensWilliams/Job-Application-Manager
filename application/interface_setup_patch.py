@@ -1,5 +1,8 @@
 import json
-from interface_functions import *
+import sys
+if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
+    sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
+from application.interface_functions import *
 
 # EXPLINATION OF THE PURPOSE OF THISE FILE
 

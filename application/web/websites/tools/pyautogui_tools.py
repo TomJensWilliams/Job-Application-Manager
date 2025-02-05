@@ -1,7 +1,7 @@
 import pyautogui
 import pyscreeze
 import time
-from web.websites.tools.misc_tools import *
+from application.web.websites.tools.misc_tools import *
 
 #########
 # NOTES #
@@ -198,10 +198,22 @@ def wait_for_locate(filename, confidence=0.9, waittime=50):
         raise pyscreeze.ImageNotFoundException('')
     return output
 
+def wait_for_locate_multiple(filenames, confidence=0.9, waittime=50):
+    counter = 0
+    output = locate_on_screen(filenames[0], confidence)
+    while len(output) == 0 and counter < waittime:
+        for filename in filenames:
+            if len(output) == 0:
+                output = locate_on_screen(filename, confidence)
+        counter += 1
+        time.sleep(0.1)
+    if counter >= waittime:
+        raise pyscreeze.ImageNotFoundException('')
+    return output
+
 def get_all_html(urls_list, inspect_wait):
     output = []
     for url in urls_list:
-        print(f"#{url}#")
         open_url(url, 0.01)
         wait_seconds(inspect_wait)
         output.append(get_html())

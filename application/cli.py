@@ -1,5 +1,11 @@
+import os
+import sys
+if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
+    sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
 import json
-from interface_functions import *
+import re
+import datetime
+from application.interface_functions import *
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # ~ Helpful Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -60,7 +66,19 @@ def free_user_input(prompt, /, *, exit_choice="exit"):
 # ~ Handling Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# ADD QUIT OPTIONS?
+def handle_backup():
+    print("Currently only a default version of this function is allowed.")
+    backup_directories = os.listdir(f"../backup")
+    index = 0
+    while index < len(backup_directories):
+        if not re.search(r"manual_backup_[09]*", backup_directories[index]):
+            backup_directories.pop(index)
+        else:
+            index += 1
+    backup_directory = backup_databases(database_filenames=None, backup_directory_name=f"manual_backup_{len(backup_directories) + 1}")
+    with open(f"../backup/{backup_directory}/_note.txt", "w") as f:
+        print(f"{datetime.datetime.now()}", file=f)
+    print("Backing up databases completed.")
 
 def handle_create(database, table, /, *, print_statements=False):
     input_style = choose_from_options("Would you like to create a record manually or using a file?", ["manually", "file"])
@@ -115,21 +133,6 @@ def handle_read(database, table, /, *, rowid=False, print_statements=False):
                         return # continue?
                     else:
                         input_values.append(value_choice)
-            """
-            while True:
-                field_choice = choose_from_options("Which field would you like to add to be checked?", conditional_remove_multiple(fields, input_fields))
-                if field_choice == "exit":
-                    break
-                else:
-                    input_fields.append(field_choice)
-                value_choice = free_user_input(f"What value would you like to check for {field_choice}?")
-                if value_choice == "exit":
-                    continue
-                else:
-                    input_values.append(value_choice)
-            if len(field_choice) == 0:
-                return
-            """
         elif fields_choice == "no":
             input_fields = None
             input_values = None
@@ -149,12 +152,6 @@ def handle_update(database, table, /, *, rowid=False, print_statements=False):
         return
     elif input_style == "manually":
         fields = read_fields(database, table, rowid=rowid, print_statements=print_statements)
-        """
-        update_fields = []
-        update_values = []
-        match_fields = []
-        match_values = []
-        """
         update_fields = choose_multiple_from_options("Which field would you like to add to be set?", fields)
         if len(update_fields) == 0:
             return
@@ -166,21 +163,6 @@ def handle_update(database, table, /, *, rowid=False, print_statements=False):
                     return
                 else:
                     update_values.append(value_choice)
-        """
-        while True:
-            field_choice = choose_from_options("Which field would you like to add to be set?", conditional_remove_multiple(fields, update_fields))
-            if field_choice == "exit":
-                break
-            else:
-                update_fields.append(field_choice)
-            value_choice = free_user_input(f"What value would you like to set for {field_choice}?")
-            if value_choice == "exit":
-                continue
-            else:
-                update_values.append(value_choice)
-        if len(field_choice) == 0:
-            return
-        """
         fields_choice = choose_from_options("Would you like to limit the records read by field values?", ["yes", "no"])
         if fields_choice == "exit":
             return
@@ -199,21 +181,6 @@ def handle_update(database, table, /, *, rowid=False, print_statements=False):
         elif fields_choice == "no":
             match_fields = None
             match_values = None
-        """
-        while True:
-            field_choice = choose_from_options("Which field would you like to add to be checked?", conditional_remove_multiple(fields, match_fields))
-            if field_choice == "exit":
-                break
-            else:
-                match_fields.append(field_choice)
-            value_choice = free_user_input(f"What value would you like to check for {field_choice}?")
-            if value_choice == "exit":
-                continue
-            else:
-                match_values.append(value_choice)
-        if len(field_choice) == 0:
-            return
-        """
         update_records(database, table, update_fields, update_values, match_fields=match_fields, match_values=match_values, print_statements=print_statements)
     elif input_style == "file":
         filename = free_user_input("What is the name of the file?\nPlease remember the file ending:\t")
@@ -255,21 +222,6 @@ def handle_delete(database, table, /, *, rowid=False, print_statements=False):
                         return
                     else:
                         input_values.append(value_choice)
-            """
-            while True:
-                field_choice = choose_from_options("Which field would you like to add to be checked?", conditional_remove_multiple(fields, input_fields))
-                if field_choice == "exit":
-                    break
-                else:
-                    input_fields.append(field_choice)
-                value_choice = free_user_input(f"What value would you like to check for {field_choice}?")
-                if value_choice == "exit":
-                    continue
-                else:
-                    input_values.append(value_choice)
-            if len(field_choice) == 0:
-                return
-            """
         delete_records(database, table, fields=input_fields, values=input_values, print_statements=print_statements)
     elif input_style == "file":
         filename = free_user_input("What is the name of the file?\nPlease remember the file ending:\t")
@@ -287,12 +239,12 @@ def handle_print(database, table, /, *,  print_statements=False):
     else:
         print_table(database, table, filename, print_statements=print_statements)
 
-def handle_run(table, /, *,  print_statement=True):
+def handle_run(table, /, *,  print_statements=False):
     rowid_input = int(free_user_input("What is the rowid associated with the search you would like to run?"))
     if rowid_input == "exit":
         return
     else:
-        run_search(table, rowid_input, print_statements=print_statement)
+        run_search(table, rowid_input, print_statements=print_statements)
 
 def handle_prepare(table, /, *, print_statements=False):
     print("Currently preparing a search from a file is the only supported option")
@@ -308,8 +260,8 @@ def handle_prepare(table, /, *, print_statements=False):
 # ~ Main Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-if __name__ == "__main__":
-    databases = ["dictionaries", "jobs", "searches"]
+def main(*, print_statements=False):
+    databases = ["dictionaries", "jobs", "searches", "backup"]
     tables = ["glassdoor", "indeed", "linkedin", "monster", "ziprecruiter"]
     base_actions = ["create", "read", "update", "delete", "print"]
     search_actions = ["run", "prepare"]
@@ -317,6 +269,8 @@ if __name__ == "__main__":
         database = choose_from_options("Which database would you like to perform an action on?", databases)
         if database == "exit":
             break
+        elif database == "backup":
+            handle_backup()
         table = choose_from_options("Which table would you like to perform an action in relation to?", tables)
         if table == "exit":
             continue
@@ -324,16 +278,18 @@ if __name__ == "__main__":
         if action == "exit":
             continue
         elif action == "create":
-            handle_create(database, table)
+            handle_create(database, table, print_statements=print_statements)
         elif action == "read":
-            handle_read(database, table)
+            handle_read(database, table, print_statements=print_statements)
         elif action == "update":
-            handle_update(database, table)
+            handle_update(database, table, print_statements=print_statements)
         elif action == "delete":
-            handle_delete(database, table)
+            handle_delete(database, table, print_statements=print_statements)
         elif  action == "print":
-            handle_print(database, table)
+            handle_print(database, table, print_statements=print_statements)
         elif action == "run":
-            handle_run(table)
+            handle_run(table, print_statements=print_statements)
         elif action == "prepare":
-            handle_prepare(table)
+            handle_prepare(table, print_statements=print_statements)
+
+main()

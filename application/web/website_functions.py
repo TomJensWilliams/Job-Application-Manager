@@ -1,11 +1,11 @@
 import re
-from web.websites.tools.misc_tools import *
-from web.websites.tools.pyautogui_tools import *
-from web.websites import glassdoor
-from web.websites import indeed
-from web.websites import linkedin
-from web.websites import monster
-from web.websites import ziprecruiter
+from application.web.websites.tools.misc_tools import *
+from application.web.websites.tools.pyautogui_tools import *
+from application.web.websites import glassdoor
+from application.web.websites import indeed
+from application.web.websites import linkedin
+from application.web.websites import monster
+from application.web.websites import ziprecruiter
 
 def get_website_functions(website):
     if website == "glassdoor":
@@ -35,7 +35,7 @@ def process_job_ids(website, new_ids, job_fields, /, *, broswer_wait=2, inspect_
     return website_functions.prepare_job_data(new_ids, job_fields, html_content)
 
 def process_search_parameters(table, parameters, /, *, print_statements=False):
-    pass
+    return get_website_functions(table).process_search_parameters(table, parameters, print_statements=print_statements)
 
 def get_base_url(website):
     return get_website_functions(website).search_base_url()

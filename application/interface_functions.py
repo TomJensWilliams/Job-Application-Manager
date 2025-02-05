@@ -1,7 +1,14 @@
+import os
+import sys
+if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
+    sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
+import datetime
 import copy
 import json
-from web import website_functions
-from databases import database_functions
+import re
+import shutil
+from application.web import website_functions
+from application.databases import database_functions
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
@@ -13,6 +20,22 @@ from databases import database_functions
 def create_database(database, /, *, print_statements=False):
     database_functions.create_database(database, print_statements=print_statements)
 
+def backup_databases(*,database_filenames=None, backup_directory_name=None):
+    if backup_directory_name == None:
+        backup_directory_name = datetime.datetime.now()
+    if database_filenames == None:
+        database_filenames = os.listdir(f"./databases")
+        index = 0
+        while index < len(database_filenames):
+            if not re.search(r".*\.db", database_filenames[index]):
+                database_filenames.pop(index)
+            else:
+                index += 1
+    os.mkdir(f"../backup/{backup_directory_name}")
+    for filename in database_filenames:
+        shutil.copy(f"./databases/{filename}", f"../backup/{backup_directory_name}")
+    return backup_directory_name
+
 # Tables
 
 def create_table(database, table, fields, datatypes, /, *, print_statements=False):
@@ -22,6 +45,9 @@ def create_table(database, table, fields, datatypes, /, *, print_statements=Fals
 
 def read_fields(database, table, /, *, rowid=False, print_statements=False):
     return database_functions.read_fields(database, table, rowid=rowid, print_statements=print_statements)
+
+def read_fields_datatypes(database, table, /, *, print_statements=False):
+    return database_functions.read_fields_datatypes(database, table, print_statements=print_statements)
 
 # Records
 
@@ -74,7 +100,8 @@ def print_table(database, table, filename, /, *, print_statements=False):
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% #
 
 def run_search(table, search_id, /, *, print_statements=False):
-    url_list = json.loads(database_functions.read_records("searches", table, rowid=False, selections=["urls"], fields=["rowid"], values=[search_id], print_statements=print_statements)[0][0])
+    url_list = database_functions.read_records("searches", table, rowid=False, selections=["urls"], fields=["rowid"], values=[search_id], print_statements=print_statements)[0][0]
+    print(url_list)
     found_ids = website_functions.retrieve_job_ids(table, url_list, print_statements=print_statements)
     old_ids = database_functions.read_records("searches", table, rowid=False, selections=["job_id"], fields=None, values=None, print_statements=print_statements)
     new_ids = []
@@ -88,30 +115,50 @@ def run_search(table, search_id, /, *, print_statements=False):
 
 def prepare_search(table, parameters, /, *, print_statements=False):
     create_and_update_dictionaries(table, parameters, print_statements=print_statements)
+    print_table("dictionaries", table, "MID_FUNCTION_CAPTURE.txt")
     keyed_dictionaries = database_functions.read_records("dictionaries", table, rowid=False, selections=["parameter", "dictionary"], fields=None, values=None, print_statements=print_statements)
     base_url = website_functions.get_base_url(table)
     urls = [base_url]
+    print(f"1: {keyed_dictionaries}")
+    for key, values in parameters.items():
+        print(f"2: {[element[0] for element in keyed_dictionaries]}")
+        print(f"3: {[element[0] for element in keyed_dictionaries].index(key)}")
+        key_index = [element[0] for element in keyed_dictionaries].index(key)
+        new_urls = []
+        for value in values:
+            for url in urls:
+                print(f"4: {key}")
+                print(f"5: {value}")
+                print(f"6: {keyed_dictionaries[key_index]}")
+                new_urls.append(url + keyed_dictionaries[key_index][1][value])
+        urls = new_urls
+    for url in urls:
+        url += "\n\n"
+        print(url)
+    """
     for key in parameters:
-        current_key_index = [json.loads(element[0]) for element in keyed_dictionaries].index(key)
+        current_key_index = [element[0] for element in keyed_dictionaries].index(key)
         for index in range(0, len(parameters[key])):
             old_urls = copy.copy(urls)
             old_length = len(urls)
             if index == 0:
                 for url_index in range(0, old_length):
-                    urls[url_index] += json.loads(keyed_dictionaries[current_key_index][1])[parameters[key][index]]
+                    urls[url_index] += keyed_dictionaries[current_key_index][1][parameters[key][index]]
             else:
                 for url_index in range(0, old_length):
-                    urls.append(f"{old_urls[url_index]}{json.loads(keyed_dictionaries[current_key_index][1])[parameters[key][index]]}")
+                    urls.append(f"{old_urls[url_index]}{keyed_dictionaries[current_key_index][1][parameters[key][index]]}")
+    """
     for index in range(0, len(urls)):
         urls[index] += "\n\n"
         print(urls[index])
     database_functions.create_record("searches", table, ["parameters", "urls"], [parameters, urls], print_statements=print_statements)
+    print_table("searches", table, "AFTER_FUNCTION_CAPTURE.txt")
 
 def create_and_update_dictionaries(table, parameters, /, *, print_statements=False):
     dictionaries_to_create = []
     dictionaries_to_update = []
     old_key_dictionary_pairs = database_functions.read_records("dictionaries", table, rowid=False, selections=["parameter", "dictionary"], fields=None, values=None, print_statements=print_statements)
-    old_keys = [json.loads(pair[0]) for pair in old_key_dictionary_pairs]
+    old_keys = [pair[0] for pair in old_key_dictionary_pairs]
     for key in list(parameters.keys()):
         if not key in old_keys:
             dictionaries_to_create.append(key)
@@ -119,7 +166,7 @@ def create_and_update_dictionaries(table, parameters, /, *, print_statements=Fal
             dictionary_update_set = {"key": key, "values": []}
             old_key_index = old_keys.index(key)
             for value in parameters[key]:
-                if not value in list(json.loads(old_key_dictionary_pairs[old_key_index][1]).keys()):
+                if not value in list(old_key_dictionary_pairs[old_key_index][1].keys()):
                     dictionary_update_set["values"].append(value)
             if len(dictionary_update_set["values"]) != 0:
                 dictionaries_to_update.append(dictionary_update_set)
@@ -137,39 +184,6 @@ def create_and_update_dictionaries(table, parameters, /, *, print_statements=Fal
             database_functions.create_record("dictionaries", table, dictionary_contents[index]["key"], dictionary_contents[index]["dictionary"], print_statements=print_statements)
         for index in range(update_index, len(dictionary_contents)):
             new_dictionary = old_key_dictionary_pairs[old_keys.index(dictionary_contents[index]["key"])][1]
-            for key, value in dictionary_contents[index]["dictionary"]:
+            for key, value in dictionary_contents[index]["dictionary"].items():
                 new_dictionary[key] = value
-            database_functions.update_records("dictionaries", table, "dictionary", new_dictionary, "parameter", dictionary_contents[index]["key"], print_statements=print_statements)
-
-    """
-    all_key_dictionary_pairs = read_records("dictionaries", website, selections=["parameter", "dictionary"], print_statements=print_statements)
-    all_keys = [element[0] for element in all_key_dictionary_pairs]
-    keys_to_create = []
-    keys_values_to_update = []
-    all_update_content =[]
-    for key in list(parameters.keys()):
-        if not key in all_keys:
-            keys_to_create.append(key)
-        else:
-            for index in range(0, len(parameters[key])):
-                if not parameters[key][index] in all_key_dictionary_pairs[key]:
-                    keys_values_to_update.append([key, parameters[key][index]])
-    for index in range(0, len(keys_to_create)):
-        if website == "glassdoor":
-            dictionaries_content = glassdoor.prepare_search_dictionary(parameters)
-        elif website == "indeed":
-            dictionaries_content = indeed.prepare_search_dictionary()
-        elif website == "linkedin":
-            dictionaries_content = linkedin.prepare_search_dictionary()
-        elif website == "monster":
-            dictionaries_content = monster.prepare_search_dictionary()
-        elif website == "ziprecruiter":
-            dictionaries_content = ziprecruiter.prepare_search_dictionary()
-        for dictionary in dictionaries_content:
-            create_record("searches", website, dic, print_statements)
-        # all_update_content.append("PALCEHOLDER")
-    for index in range(0, len(keys_values_to_update)):
-        # all_update_content.append("PLACEHOLDER")
-    for index in range(0, len(all_update_content)):
-        update_records("dictionaries", website, all_update_content[index][0], website, all_update_content[index][1], website, all_update_content[index][2], website, all_update_content[index][3], print_statements)
-"""
+            database_functions.update_records("dictionaries", table, ["dictionary"], [new_dictionary], match_fields=["parameter"], match_values=[dictionary_contents[index]["key"]], print_statements=print_statements)

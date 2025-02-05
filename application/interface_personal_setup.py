@@ -1,5 +1,8 @@
 import json
-from interface_functions import *
+import sys
+if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
+    sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
+from application.interface_functions import *
 
 # EXPLINATION OF THE PURPOSE OF THIS FILE
 
@@ -30,7 +33,8 @@ def main(*, print_statements=False):
         create_record("dictionaries", "indeed", ["parameter", "dictionary"], [indeed_dictionary_titles[index], indeed_dictionaries[index]], print_statements=print_statements)
 
     first_search = {
-        "search_title": ["Help Desk", "Desktop Support", "IT Field Technician"],
+        "search_title": ["Help Desk", "Desktop Support", "IT Field Technician", "IT Specialist", "IT Technician"],
+        # "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane Valley, WA", "Spokane, WA"],
         "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane, WA"],
         "date_posted": ["Last 14 days"],
         "distance": ["Within 50 miles"]
