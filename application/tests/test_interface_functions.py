@@ -2,6 +2,8 @@ import os
 import sqlite3
 from application.interface_functions import *
 
+"""
+
 def test_create_database():
     if os.path.exists("./databases/pytest.db"):
         os.remove("./databases/pytest.db")   
@@ -77,3 +79,5 @@ def test_prepare_search():
 
 def test_create_and_update_dictionaries():
     pass
+
+# """

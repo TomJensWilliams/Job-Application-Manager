@@ -29,10 +29,9 @@ def retrieve_job_ids(website, url_list, /, *, browser_wait=2, inspect_wait=5, pr
 def process_job_ids(website, new_ids, job_fields, /, *, broswer_wait=2, inspect_wait=5, print_statements=False):
     open_google_chrome()
     wait_seconds(broswer_wait)
-    website_functions = get_website_functions(website)
-    base_url = website_functions.job_base_url()
-    html_content = open_tabs_and_windows(new_ids, base_url, inspect_wait)
-    return website_functions.prepare_job_data(new_ids, job_fields, html_content)
+    base_url = get_website_functions(website).job_base_url()
+    html_content = open_urls_and_get_html(new_ids, base_url, inspect_wait)
+    return get_website_functions(website).prepare_job_data(new_ids, job_fields, html_content)
 
 def process_search_parameters(table, parameters, /, *, print_statements=False):
     return get_website_functions(table).process_search_parameters(table, parameters, print_statements=print_statements)

@@ -36,15 +36,19 @@ def prepare_job_data(new_ids, job_fields, html_content):
 
 def process_search_parameters(table, parameters, print_statements=False):
     parameters_sets = []
-    largest_index = 0
     all_keys = [parameter["key"] for parameter in parameters]
-    if not "search_title" in all_keys:
-        parameters.append({"key": "search_title", "values": ["placeholder"]})
-    elif not "search_location" in all_keys:
-        parameters.append({"key": "search_location", "values": ["placeholder"]})
-    for parameter in parameters:
-        if len(parameter["values"]) > largest_index:
-            largest_index = len(parameter["values"])
+    for parameter_title in [element for element in ["search_title", "search_location"] if element not in all_keys]:
+        parameter.append({"keys": parameter_title, "values": ["placeholder"]})
+    # if not "search_title" in all_keys:
+    #     parameters.append({"key": "search_title", "values": ["placeholder"]})
+    # elif not "search_location" in all_keys:
+    #     parameters.append({"key": "search_location", "values": ["placeholder"]})
+
+    largest_index = max([len(parameter) for parameter in parameters])
+    # largest_index = 0
+    # for parameter in parameters:
+    #     if len(parameter["values"]) > largest_index:
+    #         largest_index = len(parameter["values"])
     for index in range(0, largest_index):
         current_parameters = {}
         for parameter in parameters:

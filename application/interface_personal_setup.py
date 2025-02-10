@@ -33,8 +33,8 @@ def main(*, print_statements=False):
         create_record("dictionaries", "indeed", ["parameter", "dictionary"], [indeed_dictionary_titles[index], indeed_dictionaries[index]], print_statements=print_statements)
 
     first_search = {
-        "search_title": ["Help Desk", "Desktop Support", "IT Field Technician", "IT Specialist", "IT Technician"],
-        # "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane Valley, WA", "Spokane, WA"],
+        "search_title": ["Help Desk", "Desktop Support", "IT Field Technician"],
+        "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane Valley, WA", "Spokane, WA"],
         "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane, WA"],
         "date_posted": ["Last 14 days"],
         "distance": ["Within 50 miles"]

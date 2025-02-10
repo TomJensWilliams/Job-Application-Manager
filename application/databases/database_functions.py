@@ -5,20 +5,52 @@ if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" i
 import sqlite3
 import json
 import datetime
+import shutil
 
 # Databases
 
 def create_database(database, /, *, print_statements=False):
+    if  os.path.isfile(f"./databases/{database}.db"):
+        print("Attempted to create database which already exists.")
+        return
     try:
         with sqlite3.connect(f"./databases/{database}.db"):
             if print_statements: print(f"{database} database opened successfully.")
     except sqlite3.OperationalError as e:
         print("Failed to open database:", e)
 
+
+def backup_database(database, /, *, backup_name=None, print_statements=False):
+    if os.path.isdir(f"../backup/{backup_name}.db"):
+        raise BaseException("Attempting to create backup with a name that already exists.")
+    if backup_name == None:
+        backup_name = datetime.datetime.now()
+    os.mkdir(f"../backup/{backup_name}")
+    shutil.copy(f"./databases/{database}.db", f"../backup/{backup_name}")
+    if print_statements: print(f"{database} database backed up successfully in {backup_name}.")
+    return backup_name
+
+def restore_database(database, backup_name, /, *, print_statements=False):
+    if os.path.isfile(f"./databases/{database}.db"):
+        os.mkdir("../failsafe")
+        shutil.copy(f"./databases/{database}.db", f"../failsafe")
+        os.remove(f"./databases/{database}.db")
+    try:
+        shutil.copy(f"../backup/{backup_name}/{database}.db", "./databases")
+        if print_statements: print(f"{database} database restored successfully from {backup_name}")
+    except Exception:
+        if os.path.isfile(f"./databases/{database}.db"):
+            os.remove(f"./databases/{database}.db")
+        if os.path.isdir("../failsafe"):
+            shutil.copy(f"../failsafe/{database}.db", "./databases")
+    finally:
+        if os.path.isdir("../failsafe"):
+            shutil.rmtree("../failsafe")
+
 # Tables
 
 def create_table(database, table, fields, datatypes, /, *, print_statements = False):
-    statement = f"CREATE TABLE IF NOT EXISTS {table} (\n"
+    statement = f"CREATE TABLE {table} (\n"
     for index in range(0, len(fields)):
         statement += f"\t{fields[index]} {datatypes[index]}{',' if index != len(fields) - 1 else ''}\n"
     statement += ");"
@@ -134,7 +166,6 @@ def read_records(database, table, /, *, rowid=False, selections=None, fields=Non
         print("Failed to read records:", e)
 
 def update_records(database, table, update_fields, update_values, /, *, match_fields=None, match_values=None, print_statements=False):
-    if print_statements: print(read_records(database, table))
     if update_values != None:
         for index in range(0, len(update_values)):
             if isinstance(update_values[index], str) or isinstance(update_values[index], int):
@@ -164,7 +195,6 @@ def update_records(database, table, update_fields, update_values, /, *, match_fi
                 if print_statements: print(statement, tuple(update_values))
                 cursor.execute(statement, tuple(update_values))
             else:
-                if print_statements: print(update_values, match_values)
                 if print_statements: print(statement, tuple(update_values + match_values))
                 cursor.execute(statement, tuple(update_values + match_values))
             conn.commit()

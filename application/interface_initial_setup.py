@@ -1,12 +1,10 @@
 import os
+import sys
 import json
 import sys
 if "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application" in sys.path:
     sys.path[sys.path.index("/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager/application")] = "/home/tom/Desktop/GithubFolder/Public/Job-Application-Manager"
 from application.interface_functions import *
-
-from application import interface_personal_setup
-from application import interface_setup_patch
 
 # This will contain the lines of code which should be able to be
 # run upon downloading this application, and prepare the databases
@@ -18,7 +16,7 @@ from application import interface_setup_patch
 # and chosen from a consistent list, such as date posted and
 # radius, will be preemptively created in this script.
 
-def main(*, print_statements=False):
+def setup(*, print_statements=False):
 
     #################
     # All Databases #
@@ -92,4 +90,18 @@ def main(*, print_statements=False):
     # Demonstration #
     #################
 
-main()
+    ##############
+    # Connecting #
+    ##############
+
+    """
+    if os.path.exists("./interface_personal_setup.py"):
+        print("Entering personal setup")
+        interface_personal_setup.main()
+
+    if os.path.exists("./interface_setup_patch.py"):
+        print("Entering patch setup")
+        interface_setup_patch.main()
+    """
+
+setup()

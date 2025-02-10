@@ -66,6 +66,7 @@ def free_user_input(prompt, /, *, exit_choice="exit"):
 # ~ Handling Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+"""
 def handle_backup():
     print("Currently only a default version of this function is allowed.")
     backup_directories = os.listdir(f"../backup")
@@ -79,6 +80,7 @@ def handle_backup():
     with open(f"../backup/{backup_directory}/_note.txt", "w") as f:
         print(f"{datetime.datetime.now()}", file=f)
     print("Backing up databases completed.")
+"""
 
 def handle_create(database, table, /, *, print_statements=False):
     input_style = choose_from_options("Would you like to create a record manually or using a file?", ["manually", "file"])
@@ -270,7 +272,7 @@ def main(*, print_statements=False):
         if database == "exit":
             break
         elif database == "backup":
-            handle_backup()
+            pass # handle_backup()
         table = choose_from_options("Which table would you like to perform an action in relation to?", tables)
         if table == "exit":
             continue
