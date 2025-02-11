@@ -32,14 +32,24 @@ def main(*, print_statements=False):
     for index in range(0, len(indeed_dictionary_titles)):
         create_record("dictionaries", "indeed", ["parameter", "dictionary"], [indeed_dictionary_titles[index], indeed_dictionaries[index]], print_statements=print_statements)
 
+    """
     first_search = {
         "search_title": ["Help Desk", "Desktop Support", "IT Field Technician"],
         "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane Valley, WA", "Spokane, WA"],
-        "search_location": ["Coeur d'Alene, ID", "Post Falls, ID", "Liberty Lake, WA", "Spokane, WA"],
         "date_posted": ["Last 14 days"],
         "distance": ["Within 50 miles"]
     }
     prepare_search("indeed", first_search, print_statements=print_statements)
+    """
+
+    second_search = {
+        "search_title": ["Help Desk"],
+        "search_location": ["Post Falls, ID"],
+        "date_posted": ["Last 3 days"],
+        "distance": ["Within 50 miles"]
+    }
+    prepare_search("indeed", second_search, print_statements=print_statements)
+
 
     ############
     # LinkedIn #

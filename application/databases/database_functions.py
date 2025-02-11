@@ -10,7 +10,7 @@ import shutil
 # Databases
 
 def create_database(database, /, *, print_statements=False):
-    if  os.path.isfile(f"./databases/{database}.db"):
+    if os.path.isfile(f"./databases/{database}.db"):
         print("Attempted to create database which already exists.")
         return
     try:
@@ -19,12 +19,11 @@ def create_database(database, /, *, print_statements=False):
     except sqlite3.OperationalError as e:
         print("Failed to open database:", e)
 
-
 def backup_database(database, /, *, backup_name=None, print_statements=False):
-    if os.path.isdir(f"../backup/{backup_name}.db"):
-        raise BaseException("Attempting to create backup with a name that already exists.")
     if backup_name == None:
         backup_name = datetime.datetime.now()
+    if os.path.isdir(f"../backup/{backup_name}.db"):
+        raise BaseException("Attempting to create backup with a name that already exists.")
     os.mkdir(f"../backup/{backup_name}")
     shutil.copy(f"./databases/{database}.db", f"../backup/{backup_name}")
     if print_statements: print(f"{database} database backed up successfully in {backup_name}.")

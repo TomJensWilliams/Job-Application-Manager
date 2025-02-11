@@ -38,7 +38,7 @@ def process_search_parameters(table, parameters, print_statements=False):
     parameters_sets = []
     all_keys = [parameter["key"] for parameter in parameters]
     for parameter_title in [element for element in ["search_title", "search_location"] if element not in all_keys]:
-        parameter.append({"keys": parameter_title, "values": ["placeholder"]})
+        parameters.append({"key": parameter_title, "values": ["placeholder"]})
     # if not "search_title" in all_keys:
     #     parameters.append({"key": "search_title", "values": ["placeholder"]})
     # elif not "search_location" in all_keys:
@@ -53,8 +53,12 @@ def process_search_parameters(table, parameters, print_statements=False):
         current_parameters = {}
         for parameter in parameters:
             if index < len(parameter["values"]):
+                print(parameter)
+                # current_parameters[parameter["key"]] = parameter["values"][index]
                 current_parameters[parameter["key"]] = parameter["values"][index]
             else:
+                print(parameter)
+                # current_parameters[parameter["key"]] = parameter["values"][len(parameter["values"]) - 1]
                 current_parameters[parameter["key"]] = parameter["values"][len(parameter["values"]) - 1]
         parameters_sets.append(current_parameters)
     open_google_chrome()

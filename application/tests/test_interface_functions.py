@@ -1,42 +1,181 @@
 import os
+import sys
 import sqlite3
+from application.tests.testing_tools import *
 from application.interface_functions import *
 
 """
-
+    Assert 1: Tests to make sure test database does not already exist.
+    Assert 2: Tests to see that test database has been corrected.
+"""
 def test_create_database():
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")   
+    delete_file_if_found("./databases/pytest.db")
+    #
+    assert not file_exists("./databases/pytest.db")
     create_database("pytest")
-    assert os.path.exists("./databases/pytest.db")
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")
+    assert file_exists("./databases/pytest.db")
+    #
+    delete_file_if_found("./databases/pytest.db")
 
-def test_backup_databases():
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")
-    if os.path.exists("../backup/pytest/pytest.db"):
-        os.remove("../backup/pytest/pytest.db")
-        os.rmdir("../backup/pytest")
-    create_database("pytest")
-    create_table("pytest", "test", ["message"], ["TEXT"])
-    create_record("pytest", "test", ["message"], ["this worked"])
-    backup_directory_name = backup_databases(database_filenames=["pytest.db"], backup_directory_name="pytest")
-    try:
-        with sqlite3.connect(f"../backup/{backup_directory_name}/pytest.db") as conn:
+"""
+    Assert 1: Test to make sure test database does not already exist.
+    Assert 2: Test that new database has been set up with one record.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+    Assert 4: Test to see if backup directory and database file were created.
+    Assert 5: Test to see that another backup directory was created.
+    Assert 6: Test to see that backup was created with expected name.
+    Assert 7: For each backup database, check to see contents are as expected.
+    Assert 8: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+def test_backup_database():
+    delete_file_if_found("./databases/pytest.db")
+    delete_file_if_found("../backup/pytest/pytest.db")
+    delete_empty_directory_if_found("../backup/pytest")
+    #
+    assert not file_exists("../backup/pytest/pytest.db")
+    try: 
+        with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            assert cursor.execute("SELECT * FROM test").fetchall() == [('this worked',)]
-    except sqlite3.Error as e:
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
+            cursor.execute("INSERT INTO test(name,age) VALUES('Bill',42)")
+            conn.commit()
+            assert cursor.execute("SELECT * FROM test").fetchall() == [('Bill', 42)]
+    except sqlite3.OperationalError as e:
         print("Unable to backup database:", e)
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")   
-    if os.path.exists("../backup/pytest/pytest.db"):
-        os.remove("../backup/pytest/pytest.db")
-        os.rmdir("../backup/pytest")
+        assert 0 == 1
+    chosen_backup_name = backup_database("pytest", backup_name="pytest")
+    assert file_exists(f"../backup/{chosen_backup_name}/pytest.db")
+    directory_count = count_directories("../backup")
+    assigned_backup_name = backup_database("pytest")
+    assert  count_directories("../backup") == directory_count + 1
+    assert file_exists(f"../backup/{assigned_backup_name}/pytest.db")
+    backup_databases = [chosen_backup_name, assigned_backup_name]
+    for database in backup_databases:
+        try:
+            with sqlite3.connect(f"../backup/{database}/pytest.db") as conn:
+                cursor = conn.cursor()
+                assert cursor.execute("SELECT * FROM test").fetchall() == [('Bill', 42)]
+        except sqlite3.OperationalError as e:
+            print("Unable to backup database:", e)
+            assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+    delete_file_if_found(f"../backup/{chosen_backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{chosen_backup_name}")
+    delete_file_if_found(f"../backup/{assigned_backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{assigned_backup_name}")
 
+"""
+    Assert 1: Test to make sure test databases do not already exist.
+    Assert 2: Test that new databases have been set up with one record.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+    Assert 4: Test to see if backup directory and database file were created.
+    Assert 5: Test to see that another backup directory was created.
+    Assert 6: Test to see that backup was created with expected name.
+    Assert 7: For each backup database, check to see contents are as expected.
+    Assert 8: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+def test_backup_databases():
+    for letter in ["a", "b", "c"]:
+        delete_file_if_found(f"./databases/pytest_{letter}.db")
+        delete_file_if_found(f"../backup/pytest/pytest_{letter}.db")
+    delete_empty_directory_if_found("../backup/pytest")
+    #
+    for letter in ["a", "b", "c"]:
+        assert file_exists(f"../backup/pytest/pytest_{letter}.db")
+    for letter in ["a", "b", "c"]:
+        try: 
+            with sqlite3.connect(f"./databases/pytest_{letter}.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("CREATE TBLE test(name TEXT, age INTEGER);")
+                cursor.execute("INSERT INTO test(name,age) VALUES('Bill',42)")
+                conn.commit()
+                assert not cursor.execute("SELECT * FROM test").fetchall() == [('Bill', 42)]
+        except sqlite3.OperationalError as e:
+            print("Unable to backup database:", e)
+            assert 0 == 1
+    chosen_backup_name = backup_databases(["pytest_a", "pytest_b", "pytest_c"], backup_name="pytest")
+    for letter in ["a", "b", "c"]:
+        assert not file_exists(f"../backup/{chosen_backup_name}/pytest_{letter}.db")
+    directory_count = count_directories("../backup")
+    assigned_backup_name = backup_databases(["pytest_a", "pytest_b", "pytest_c"])
+    assert not count_directories("../backup") == directory_count + 1
+    for letter in ["a", "b", "c"]:
+        assert not file_exists(f"../backup/{assigned_backup_name}/pytest_{letter}.db")
+    backup_databases = [chosen_backup_name, assigned_backup_name]
+    for database in backup_databases:
+        for letter in ["a", "b", "c"]:
+            try:
+                with sqlite3.connect(f"../backup/{database}/pytest_{letter}.db") as conn:
+                    cursor = conn.cursor()
+                    assert not cursor.execute("SELCT * FROM test").fetchall() == [('Bill', 42)]
+            except sqlite3.OperationalError as e:
+                print("Unable to backup database:", e)
+                assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+    delete_file_if_found(f"../backup/{chosen_backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{chosen_backup_name}")
+    delete_file_if_found(f"../backup/{assigned_backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{assigned_backup_name}")
+
+"""
+    Assert 1: Test to make sure test database does not exist
+    Assert 2: Ensure that sqlite exceptions are caught as failed assertions.
+    Assert 3: Test to make sure newly created database was
+              deleted following it being backed up.
+    Assert 4: Test to make sure test file exists after restore.
+    Assert 5: Test to see that restored database's contents are as expected.
+    Assert 6: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
+def test_restore_database():
+    delete_file_if_found("./databases/pytest")
+    #
+    assert not file_exists("./databases/pytest.db")
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
+            cursor.execute("INSERT INTO test(name,age) VALUES('Dan',84)")
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Unable to restore database:", e)
+        assert 0 == 1
+    backup_name = backup_database("pytest")
+    delete_file_if_found("./databases/pytest.db")
+    assert not file_exists("./databases/pytest.db")
+    restore_database("pytest", backup_name)
+    assert file_exists("./databases/pytest.db")
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            assert cursor.execute("SELECT * FROM test").fetchall() == [('Dan', 84)]
+    except sqlite3.Error as e:
+        print("Unable to restore database:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest")
+    delete_file_if_found(f"../backup/{backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{backup_name}")
+"""
+
+"""
+"""
+def test_restore_databases():
+    pass
+
+"""
+    Assert 1: Test that no tables exits in test database.
+    Assert 2: Test that new table exists in test database.
+    Assert 3: Test that field names of table are as expected.
+    Assert 4: Test that datatypes of fields are as expected.
+    Assert 5: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_create_table():
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")
+    delete_file_if_found("./databases/pytest.db")
+    #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
@@ -47,37 +186,255 @@ def test_create_table():
             assert [detail[2] for detail in cursor.execute("PRAGMA table_info(test)").fetchall()] == ['TEXT', 'INTEGER']
     except sqlite3.OperationalError as e:
         print("Unable to create table:", e)
-    if os.path.exists("./databases/pytest.db"):
-        os.remove("./databases/pytest.db")
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test to see that table fields are read as expected.
+    Assert 2: Test to see that table fields are read as expected following alteration.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_read_fields():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
+            assert read_fields("pytest", "test") == ["name", "age"]
+            cursor.execute("ALTER TABLE test ADD sex TEXT")
+            assert read_fields("pytest", "test", rowid=True) == ["rowid", "name", "age", "sex"]
+    except sqlite3.OperationalError as e:
+        print("Unable to read fields:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test to see that table field's datatypes are read as expected.
+    Assert 2: Test to see that table field's datatypes are read as expected following alteration.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_read_fields_datatypes():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
+            assert read_fields_datatypes("pytest", "test") == ["TEXT", "INTEGER"]
+            cursor.execute("ALTER TABLE test ADD sex TEXT")
+            assert read_fields_datatypes("pytest", "test") == ["TEXT", "INTEGER", "TEXT"]
+    except sqlite3.OperationalError as e:
+        print("Unable to read fields datatypes:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test that no record yet exists in newly created table
+    Assert 2: Test that records has been created in table with expected values.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_create_record():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
+            assert cursor.execute("SELECT * FROM test").fetchall() == []
+            create_record("pytest", "test", ["age", "name", "parents"], [42, 'Bill', {"mother": "Jan", "father": "Jake"}])
+            assert cursor.execute("SELECT * FROM test").fetchall() == [('Bill', 42, '{"mother": "Jan", "father": "Jake"}')]
+    except sqlite3.OperationalError as e:
+        print("Unable to create record:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test to see that function reads empty table as expected.
+    Assert 2: Test to see that function reads rowid and all other fields as expected.
+    Assert 3: Test to see that function reads one field from whole table as expected.
+    Assert 4: Test to see that function reads rowid and all other fields as expected,
+              where age filed if found to contain a particular integer value.
+    Assert 5: Test to see that function reads rowid and age field as expected,
+              where name field is found to contain a particular string value.
+    Assert 6: Test to see that function reads rowid and name field as expected,
+              where parents field is found to contain a particular dictionary value.
+    Assert 7: Test to see that function reads rowid and all fields as expected,
+              where rowid value is found to be a particular integer.
+    Assert 8: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_read_record():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
+            assert read_records("pytest", "test") == []
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44, \'{"mother": "Jan", "father": "Jake"}\')')
+            conn.commit()
+            assert read_records("pytest", "test", rowid=True) == [[1, "Bill", 44, {"mother": "Jan", "father": "Jake"}]]
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",82, \'{"mother": "Jan", "father": "Jake"}\')')
+            conn.commit()
+            assert read_records("pytest", "test", selections=["name"]) == [["Bill"], ["Dan"]]
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jill",44, \'{"mother": "Jenifer", "father": "Hunter"}\')')
+            conn.commit()
+            assert read_records("pytest", "test", rowid=True, fields=["age"], values=[44]) == [[1, "Bill", 44, {"mother": "Jan", "father": "Jake"}], [3, "Jill", 44, {"mother": "Jenifer", "father": "Hunter"}]]
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",63, \'{"mother": "Vivian", "father": "Todd"}\')')
+            conn.commit()
+            assert read_records("pytest", "test", rowid=True, selections=["age"], fields=["name"], values=["Dan"]) == [[2, 82], [4, 63]]
+            assert read_records("pytest", "test", rowid=True, selections=["name"], fields=["parents"], values=[{"mother": "Jan", "father": "Jake"}]) == [[1, "Bill"], [2, "Dan"]]
+            assert read_records("pytest", "test", rowid=True, selections=None, fields=["rowid"], values=[2]) == [[2, "Dan", 82, {"mother": "Jan", "father": "Jake"}]]
+    except sqlite3.OperationalError as e:
+        print("Unable to read records:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test that first records has been created with expected values.
+    Assert 2: Test that record was updated with expected values.
+    Assert 3: Test that record was created, and all records updated, as expected.
+    Assert 4: Test that records where updated to expected values, based off of the dictionary values of the parents fields.
+    Assert 5: Test that record was updated to expected value, based off of the integer value of rowid.
+    Assert 6: Ensure that sqlite exceptions are caught as failed assertions. 
+"""
+"""
 def test_update_record():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44, \'{"mother": "Jan", "father": "Jake"}\')')
+            conn.commit()
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}')]
+            update_records("pytest", "test", ["name", "age"], ["Aaron", 28], match_fields=["name", "age"], match_values=["Bill", 44])
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Jan", "father": "Jake"}')]
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jan",53, \'{"mother": "Vivian", "father": "Dan"}\')')
+            conn.commit()
+            update_records("pytest", "test", ["parents"], [{"mother": "Samantha", "father": "Saul"}])
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Saul"}'), ("Jan", 53, '{"mother": "Samantha", "father": "Saul"}')]
+            update_records("pytest", "test", ["parents"], [{"mother": "Samantha", "father": "Paul"}], match_fields=["parents"], match_values=[{"mother": "Samantha", "father": "Saul"}])
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Paul"}'), ("Jan", 53, '{"mother": "Samantha", "father": "Paul"}')]
+            update_records("pytest", "test", ["age"], [54], match_fields=["rowid"], match_values=[2])
+            # assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Samantha", "father": "Paul"}], ["Jan", 54, {"mother": "Samantha", "father": "Paul"}]]
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Paul"}'), ("Jan", 54, '{"mother": "Samantha", "father": "Paul"}')]
+    except sqlite3.OperationalError as e:
+        print("Unable to update record:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Test that all the initiail records are present, with all the values as expected.
+    Assert 2: Test that function worked to delete record with value of Jill in the name field.
+    Assert 3: Test that function worked to delete two records with a particular value for the parents field.
+    Assert 4:
+    Assert 5:
+    Assert 6: Ensure that sqlite exceptions are caught as failed assertions.
+"""
+"""
 def test_delete_record():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44,\'{"mother": "Jan", "father": "Jake"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",82,\'{"mother": "Jan", "father": "Jake"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jill",44,\'{"mother": "Jenifer", "father": "Hunter"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",63,\'{"mother": "Vivian", "father": "Todd"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Trish",36,\'{"mother": "Margaret", "father": "Jim"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Taylor",39,\'{"mother": "Margaret", "father": "Jim"}\')')
+            conn.commit()
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}'), (2, "Dan", 82, '{"mother": "Jan", "father": "Jake"}'), (3, "Jill", 44, '{"mother": "Jenifer", "father": "Hunter"}'), (4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
+            delete_records("pytest", "test", fields=["name"], values=["Jill"])
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}'), (2, "Dan", 82, '{"mother": "Jan", "father": "Jake"}'), (4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
+            delete_records("pytest", "test", fields=["parents"], values=[{"mother": "Jan", "father": "Jake"}])
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
+            delete_records("pytest", "test", fields=["rowid"], values=[5])
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
+            delete_records("pytest", "test")
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == []
+    except sqlite3.OperationalError as e:
+        print("Unable to read records:", e)
+        assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest.db")
+"""
 
+"""
+    Assert 1: Ensure that sqlite exceptions are caught as failed assertions.
+    Assert 2: Test that the test txt file does not exist before running function.
+    Assert 3: Test that the test txt file exists after running function.
+    Assert 4: Test that the test txt file has the expected contents.
+"""
 def test_print_table():
-    pass
+    delete_file_if_found("./databases/pytest.db")
+    delete_file_if_found("../output/pytest.txt")
+    #
+    try:
+        with sqlite3.connect("./databases/pytest.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44,\'{"mother": "Jan", "father": "Jake"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",82,\'{"mother": "Jan", "father": "Jake"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jill",44,\'{"mother": "Jenifer", "father": "Hunter"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",63,\'{"mother": "Vivian", "father": "Todd"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Trish",36,\'{"mother": "Margaret", "father": "Jim"}\')')
+            cursor.execute('INSERT INTO test(name,age,parents) VALUES("Taylor",39,\'{"mother": "Margaret", "father": "Jim"}\')')
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Unable to print table:", e)
+        assert 0 == 1
+    assert not file_exists("../output/pytest.txt")
+    print_table("pytest", "test", "pytest.txt")
+    assert file_exists("../output/pytest.txt")
+    with open("../output/pytest.txt", "r") as f:
+        assert f.read() == """
++-------+--------+-----+-------------------------------------------+
+| rowid | name   | age | parents                                   |
++-------+--------+-----+-------------------------------------------+
+| 1     | Bill   | 44  | {'mother': 'Jan', 'father': 'Jake'}       |
+| 2     | Dan    | 82  | {'mother': 'Jan', 'father': 'Jake'}       |
+| 3     | Jill   | 44  | {'mother': 'Jenifer', 'father': 'Hunter'} |
+| 4     | Dan    | 63  | {'mother': 'Vivian', 'father': 'Todd'}    |
+| 5     | Trish  | 36  | {'mother': 'Margaret', 'father': 'Jim'}   |
+| 6     | Taylor | 39  | {'mother': 'Margaret', 'father': 'Jim'}   |
++-------+--------+-----+-------------------------------------------+
+"""
+    #
+    delete_file_if_found("./databases/pytest.db")
+    delete_file_if_found("../output/pytest.txt")
 
+"""
+"""
 def test_run_search():
     pass
 
+"""
+"""
 def test_prepare_search():
     pass
 
+"""
+"""
 def test_create_and_update_dictionaries():
     pass
-
-# """

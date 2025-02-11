@@ -216,8 +216,9 @@ def get_all_html(urls_list, inspect_wait):
     for url in urls_list:
         open_url(url, 0.01)
         wait_seconds(inspect_wait)
-        output.append(get_html())
-    return
+        value = get_html()
+        output.append(value)
+    return output
 
 def get_html():
     press_hotkey(['ctrl', 'shift', 'i'])
@@ -237,24 +238,23 @@ def get_html():
 def open_urls_and_get_html(id_list, unformatted_url, inspec_wait=5):
     output = []
     current_tabs = 1
-    last_was_tabs = True
     url_list = prepare_urls(id_list, unformatted_url)
     for url in url_list:
         open_url(url)
-        for x in range(0, inspec_wait):
-            print(x)
-            wait_seconds(1)
+        wait_seconds(inspec_wait)
+        # for x in range(0, inspec_wait):
+        #     print(x)
+        #     wait_seconds(1)
         output.append(get_html())
         if current_tabs == 10:
             open_window()
-            last_was_tabs = False
             current_tabs = 1
         else:
             open_tab()
-            last_was_tabs = True
             current_tabs += 1
-    if last_was_tabs:
-        close_tab()
-    else:
-        close_window()
+    close_tab() if current_tabs != 1 else close_window()
+    # if current_tabs != 1:
+    #     close_tab()
+    # else:
+    #     close_window()
     return output

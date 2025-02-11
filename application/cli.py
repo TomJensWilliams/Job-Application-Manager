@@ -66,6 +66,17 @@ def free_user_input(prompt, /, *, exit_choice="exit"):
 # ~ Handling Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+def handle_backup():
+    print("Currently only a default version of this function is allowed.")
+    backup_databases(["dictionaries", "searches", "jobs"], backup_name="first_backup")
+    print("Backing up databases completed.")
+
+
+def handle_restore():
+    print("Currently only a default version of this function is allowed.")
+    restore_databases(["dictionaries", "searches", "jobs"], "first_backup")
+    print("Restoring databases completed.")
+
 """
 def handle_backup():
     print("Currently only a default version of this function is allowed.")
@@ -148,7 +159,7 @@ def handle_read(database, table, /, *, rowid=False, print_statements=False):
                 file_contents = json.loads(f.read())
                 print(read_records(database, table, rowid=rowid, selections=file_contents["selections"], fields=file_contents["fields"], values=file_contents["values"], print_statements=print_statements))
 
-def handle_update(database, table, /, *, rowid=False, print_statements=False):
+def handle_update(database, table, /, *, rowid=True, print_statements=False):
     input_style = choose_from_options("Would you like to read a record manually or using a file?", ["manually", "file"])
     if input_style == "exit":
         return
@@ -248,7 +259,7 @@ def handle_run(table, /, *,  print_statements=False):
     else:
         run_search(table, rowid_input, print_statements=print_statements)
 
-def handle_prepare(table, /, *, print_statements=False):
+def handle_prepare(table, /, *, print_statements=True):
     print("Currently preparing a search from a file is the only supported option")
     filename = free_user_input("What is the name of the file?\n Please remember the file ending:")
     if filename == "exit":
@@ -263,7 +274,7 @@ def handle_prepare(table, /, *, print_statements=False):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def main(*, print_statements=False):
-    databases = ["dictionaries", "jobs", "searches", "backup"]
+    databases = ["dictionaries", "jobs", "searches", "backup", "restore"]
     tables = ["glassdoor", "indeed", "linkedin", "monster", "ziprecruiter"]
     base_actions = ["create", "read", "update", "delete", "print"]
     search_actions = ["run", "prepare"]
@@ -272,7 +283,9 @@ def main(*, print_statements=False):
         if database == "exit":
             break
         elif database == "backup":
-            pass # handle_backup()
+            handle_backup()
+        elif database == "restore":
+            handle_restore()
         table = choose_from_options("Which table would you like to perform an action in relation to?", tables)
         if table == "exit":
             continue

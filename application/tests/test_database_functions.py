@@ -1,5 +1,6 @@
 import os
 import sys
+from application.tests.testing_tools import *
 from application.databases.database_functions import *
 
 """
@@ -97,8 +98,18 @@ def test_restore_database():
     except sqlite3.Error as e:
         print("Unable to restore database:", e)
         assert 0 == 1
+    #
+    delete_file_if_found("./databases/pytest")
+    delete_file_if_found(f"../backup/{backup_name}/pytest.db")
+    delete_empty_directory_if_found(f"../backup/{backup_name}")
 
-
+"""
+    Assert 1: Test that no tables exits in test database.
+    Assert 2: Test that new table exists in test database.
+    Assert 3: Test that field names of table are as expected.
+    Assert 4: Test that datatypes of fields are as expected.
+    Assert 5: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_create_table():
     delete_file_if_found("./databases/pytest.db")
     #
@@ -116,13 +127,18 @@ def test_create_table():
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test to see that table fields are read as expected.
+    Assert 2: Test to see that table fields are read as expected following alteration.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_read_fields():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
             assert read_fields("pytest", "test") == ["name", "age"]
             cursor.execute("ALTER TABLE test ADD sex TEXT")
             assert read_fields("pytest", "test", rowid=True) == ["rowid", "name", "age", "sex"]
@@ -132,13 +148,18 @@ def test_read_fields():
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test to see that table field's datatypes are read as expected.
+    Assert 2: Test to see that table field's datatypes are read as expected following alteration.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_read_fields_datatypes():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER);")
             assert read_fields_datatypes("pytest", "test") == ["TEXT", "INTEGER"]
             cursor.execute("ALTER TABLE test ADD sex TEXT")
             assert read_fields_datatypes("pytest", "test") == ["TEXT", "INTEGER", "TEXT"]
@@ -148,13 +169,18 @@ def test_read_fields_datatypes():
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test that no record yet exists in newly created table
+    Assert 2: Test that records has been created in table with expected values.
+    Assert 3: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_create_record():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
             assert cursor.execute("SELECT * FROM test").fetchall() == []
             create_record("pytest", "test", ["age", "name", "parents"], [42, 'Bill', {"mother": "Jan", "father": "Jake"}])
             assert cursor.execute("SELECT * FROM test").fetchall() == [('Bill', 42, '{"mother": "Jan", "father": "Jake"}')]
@@ -164,13 +190,27 @@ def test_create_record():
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test to see that function reads empty table as expected.
+    Assert 2: Test to see that function reads rowid and all other fields as expected.
+    Assert 3: Test to see that function reads one field from whole table as expected.
+    Assert 4: Test to see that function reads rowid and all other fields as expected,
+              where age filed if found to contain a particular integer value.
+    Assert 5: Test to see that function reads rowid and age field as expected,
+              where name field is found to contain a particular string value.
+    Assert 6: Test to see that function reads rowid and name field as expected,
+              where parents field is found to contain a particular dictionary value.
+    Assert 7: Test to see that function reads rowid and all fields as expected,
+              where rowid value is found to be a particular integer.
+    Assert 8: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_read_record():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
             assert read_records("pytest", "test") == []
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44, \'{"mother": "Jan", "father": "Jake"}\')')
             conn.commit()
@@ -192,39 +232,56 @@ def test_read_record():
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test that first records has been created with expected values.
+    Assert 2: Test that record was updated with expected values.
+    Assert 3: Test that record was created, and all records updated, as expected.
+    Assert 4: Test that records where updated to expected values, based off of the dictionary values of the parents fields.
+    Assert 5: Test that record was updated to expected value, based off of the integer value of rowid.
+    Assert 6: Ensure that sqlite exceptions are caught as failed assertions. 
+"""
 def test_update_record():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44, \'{"mother": "Jan", "father": "Jake"}\')')
             conn.commit()
-            assert read_records("pytest", "test", rowid=True) == [[1, "Bill", 44, {"mother": "Jan", "father": "Jake"}]]
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}')]
             update_records("pytest", "test", ["name", "age"], ["Aaron", 28], match_fields=["name", "age"], match_values=["Bill", 44])
-            assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Jan", "father": "Jake"}]]
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Jan", "father": "Jake"}')]
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jan",53, \'{"mother": "Vivian", "father": "Dan"}\')')
             conn.commit()
             update_records("pytest", "test", ["parents"], [{"mother": "Samantha", "father": "Saul"}])
-            assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Samantha", "father": "Saul"}], ["Jan", 53, {"mother": "Samantha", "father": "Saul"}]]
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Saul"}'), ("Jan", 53, '{"mother": "Samantha", "father": "Saul"}')]
             update_records("pytest", "test", ["parents"], [{"mother": "Samantha", "father": "Paul"}], match_fields=["parents"], match_values=[{"mother": "Samantha", "father": "Saul"}])
-            assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Samantha", "father": "Paul"}], ["Jan", 53, {"mother": "Samantha", "father": "Paul"}]]
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Paul"}'), ("Jan", 53, '{"mother": "Samantha", "father": "Paul"}')]
             update_records("pytest", "test", ["age"], [54], match_fields=["rowid"], match_values=[2])
-            assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Samantha", "father": "Paul"}], ["Jan", 54, {"mother": "Samantha", "father": "Paul"}]]
+            # assert read_records("pytest", "test") == [["Aaron", 28, {"mother": "Samantha", "father": "Paul"}], ["Jan", 54, {"mother": "Samantha", "father": "Paul"}]]
+            assert cursor.execute("SELECT * FROM test").fetchall() == [("Aaron", 28, '{"mother": "Samantha", "father": "Paul"}'), ("Jan", 54, '{"mother": "Samantha", "father": "Paul"}')]
     except sqlite3.OperationalError as e:
         print("Unable to update record:", e)
         assert 0 == 1
     #
     delete_file_if_found("./databases/pytest.db")
 
+"""
+    Assert 1: Test that all the initiail records are present, with all the values as expected.
+    Assert 2: Test that function worked to delete record with value of Jill in the name field.
+    Assert 3: Test that function worked to delete two records with a particular value for the parents field.
+    Assert 4:
+    Assert 5:
+    Assert 6: Ensure that sqlite exceptions are caught as failed assertions.
+"""
 def test_delete_record():
     delete_file_if_found("./databases/pytest.db")
     #
     try:
         with sqlite3.connect("./databases/pytest.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS test(name TEXT, age INTEGER, parents TEXT);")
+            cursor.execute("CREATE TABLE test(name TEXT, age INTEGER, parents TEXT);")
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Bill",44,\'{"mother": "Jan", "father": "Jake"}\')')
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Dan",82,\'{"mother": "Jan", "father": "Jake"}\')')
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Jill",44,\'{"mother": "Jenifer", "father": "Hunter"}\')')
@@ -232,52 +289,17 @@ def test_delete_record():
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Trish",36,\'{"mother": "Margaret", "father": "Jim"}\')')
             cursor.execute('INSERT INTO test(name,age,parents) VALUES("Taylor",39,\'{"mother": "Margaret", "father": "Jim"}\')')
             conn.commit()
-            assert read_records("pytest", "test", rowid=True) == [[1, "Bill", 44, {"mother": "Jan", "father": "Jake"}], [2, "Dan", 82, {"mother": "Jan", "father": "Jake"}], [3, "Jill", 44, {"mother": "Jenifer", "father": "Hunter"}], [4, "Dan", 63, {"mother": "Vivian", "father": "Todd"}], [5, "Trish", 36, {"mother": "Margaret", "father": "Jim"}], [6, "Taylor", 39, {"mother": "Margaret", "father": "Jim"}]]
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}'), (2, "Dan", 82, '{"mother": "Jan", "father": "Jake"}'), (3, "Jill", 44, '{"mother": "Jenifer", "father": "Hunter"}'), (4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
             delete_records("pytest", "test", fields=["name"], values=["Jill"])
-            assert read_records("pytest", "test", rowid=True) == [[1, "Bill", 44, {"mother": "Jan", "father": "Jake"}], [2, "Dan", 82, {"mother": "Jan", "father": "Jake"}], [4, "Dan", 63, {"mother": "Vivian", "father": "Todd"}], [5, "Trish", 36, {"mother": "Margaret", "father": "Jim"}], [6, "Taylor", 39, {"mother": "Margaret", "father": "Jim"}]]
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(1, "Bill", 44, '{"mother": "Jan", "father": "Jake"}'), (2, "Dan", 82, '{"mother": "Jan", "father": "Jake"}'), (4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
             delete_records("pytest", "test", fields=["parents"], values=[{"mother": "Jan", "father": "Jake"}])
-            assert read_records("pytest", "test", rowid=True) == [[4, "Dan", 63, {"mother": "Vivian", "father": "Todd"}], [5, "Trish", 36, {"mother": "Margaret", "father": "Jim"}], [6, "Taylor", 39, {"mother": "Margaret", "father": "Jim"}]]
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (5, "Trish", 36, '{"mother": "Margaret", "father": "Jim"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
             delete_records("pytest", "test", fields=["rowid"], values=[5])
-            assert read_records("pytest", "test", rowid=True) == [[4, "Dan", 63, {"mother": "Vivian", "father": "Todd"}], [6, "Taylor", 39, {"mother": "Margaret", "father": "Jim"}]]
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == [(4, "Dan", 63, '{"mother": "Vivian", "father": "Todd"}'), (6, "Taylor", 39, '{"mother": "Margaret", "father": "Jim"}')]
             delete_records("pytest", "test")
-            assert read_records("pytest", "test", rowid=True) == []
+            assert cursor.execute("SELECT rowid, * FROM test").fetchall() == []
     except sqlite3.OperationalError as e:
         print("Unable to read records:", e)
         assert 0 == 1
     #
     delete_file_if_found("./databases/pytest.db")
-
-#################
-# Testing Tools #
-#################
-
-def file_exists(file):
-    return os.path.isfile(file)
-
-def directory_exists(directory):
-    return os.path.isdir(directory)
-
-def directory_is_empty(directory):
-    return not any(os.scandir(directory))
-
-def delete_file_if_found(file):
-    if file_exists(file):
-        os.remove(file)
-
-def delete_empty_directory_if_found(directory):
-    if directory_exists(directory) and directory_is_empty(directory):
-        os.rmdir(directory)
-
-def count_files(directory):
-    count = 0
-    for entry in os.scandir(directory):
-        if entry.is_file():
-            count += 1
-    return count
-
-def count_directories(directory):
-    count = 0
-    for entry in os.scandir(directory):
-        if entry.is_dir():
-            count += 1
-    return count
